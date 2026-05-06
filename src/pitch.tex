@@ -194,10 +194,10 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{Ch.1}
 \begin{frame}{Le processus m\'etier qu'on automatise}
   \begin{center}
-    \resizebox{\linewidth}{!}{\input{figures/fig-processus-metier.tex}}\\[2mm]
-    {\itshape\small 4 acteurs, 6 \'etapes, aujourd'hui 100~\% manuel.}
+    \resizebox{!}{0.74\textheight}{\input{figures/fig-processus-metier.tex}}\\[1mm]
+    {\itshape\scriptsize 4 lanes (Source, Bridge, DPI, Soignant). 8 t\^aches, 1 d\'ecision, flux s\'equence et message en pointill\'e.}
   \end{center}
-  \note{Aujourd'hui, transferer une mesure du moniteur au DPI passe par un soignant qui retape. C'est lent, c'est risque, ca ne passe pas a l'echelle. Notre passerelle remplace ces six etapes manuelles par un flux continu et trace.}
+  \note{BPMN 2.0 standard. 4 lanes, evenements debut/fin, taches, gateway de validation, branche de quarantaine sur erreur, flux de message en pointille entre lanes, annotations dashed pour expliquer les contraintes. Aujourd'hui, ces 8 etapes sont 100 pourcent manuelles. Notre passerelle les automatise.}
 \end{frame}
 
 % =====================================================================
@@ -220,18 +220,19 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{Ch.3}
 \begin{frame}{Les standards qui font le pont}
   \begin{center}
-    \begin{tabular}{ll}
+    \scriptsize
+    \begin{tabularx}{\linewidth}{l l X}
       \toprule
-      \textbf{Standard} & \textbf{Position dans la passerelle} \\
+      \textbf{Standard} & \textbf{Position} & \textbf{Ce que c'est, en une phrase} \\
       \midrule
-      HL7 v2     & Entr\'ee moniteur Legacy \\
-      FHIR R4    & Sortie principale moderne \\
-      LOINC      & Codification des mesures cliniques \\
-      IHE PCD    & Profil d'int\'egration des dispositifs \\
-      KMEHR      & Standard belge, hubs r\'egionaux (roadmap) \\
-      DICOM      & Imagerie, hors-scope d\'emo \\
+      HL7 v2   & Entr\'ee Legacy & Format texte \`a barres verticales utilis\'e par 80~\% du parc hospitalier mondial. \\
+      FHIR R4  & Sortie moderne  & Norme HL7 r\'ecente fond\'ee sur des ressources REST/JSON, lisibles par les DPI 2020+. \\
+      LOINC    & Codification    & Dictionnaire universel de codes pour les analyses, mesures et observations cliniques. \\
+      IHE PCD  & Cadre intero.   & Domaine d'IHE qui d\'efinit les profils de connexion des dispositifs m\'edicaux au DPI. \\
+      KMEHR    & Belgique        & Format XML belge, utilis\'e pour les \'echanges hubs r\'egionaux et MetaHub. \\
+      DICOM    & Imagerie        & Standard mondial de l'imagerie m\'edicale, hors scope de la d\'emo (radio, IRM, scan). \\
       \bottomrule
-    \end{tabular}
+    \end{tabularx}
   \end{center}
   \note{On ne reinvente rien. HL7 v2 pour absorber le legacy. FHIR R4 pour publier moderne. LOINC pour les codes. IHE PCD comme cadre. KMEHR et DICOM en roadmap. Chacun a sa place, chacun fait son metier.}
 \end{frame}
@@ -256,8 +257,8 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{Ch.4}
 \begin{frame}{Topologie Docker : tout sur un poste}
   \begin{center}
-    \resizebox{0.88\textwidth}{!}{\input{figures/fig-topologie-docker.tex}}\\[2mm]
-    {\itshape\small 7 conteneurs orchestr\'es par Docker Compose. \texttt{docker compose up} lance tout.}
+    \resizebox{!}{0.72\textheight}{\input{figures/fig-topologie-docker.tex}}\\[1mm]
+    {\itshape\scriptsize 7 conteneurs orchestr\'es par Docker Compose. \texttt{docker compose up} lance tout.}
   \end{center}
   \note{Sept conteneurs sur un meme reseau Docker. Quatre simulateurs, le bridge, HAPI FHIR, et un broker MQTT. Tout tient sur un poste local. Reproductible a l'identique chez n'importe lequel d'entre vous.}
 \end{frame}
@@ -328,18 +329,19 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{Ch.7}
 \begin{frame}{S\'ecurit\'e et confidentialit\'e par construction}
   \begin{center}
-    \begin{tabular}{ll}
+    \scriptsize
+    \begin{tabularx}{\linewidth}{l l X}
       \toprule
-      \textbf{Pilier} & \textbf{Mise en \oe uvre} \\
+      \textbf{Pilier} & \textbf{Mise en \oe uvre} & \textbf{Pourquoi c'est l\`a} \\
       \midrule
-      Confidentialit\'e & TLS 1.3, principe de minimisation, dashboard sans donn\'ee patient \\
-      Int\'egrit\'e     & Checksum SHA-256 sur file de repli, validation FHIR avant \'emission \\
-      Disponibilit\'e   & Retry exponentiel, fallback SQLite, hot-reload des profils \\
-      Tra\c{c}abilit\'e & Logs JSON horodat\'es UTC, sans valeur clinique \\
+      Confidentialit\'e & TLS 1.3, minimisation, dashboard sans PII & La donn\'ee patient ne circule jamais en clair, et l'op\'erateur biom\'edical n'a jamais besoin de la voir pour faire son m\'etier. \\
+      Int\'egrit\'e     & SHA-256 sur file de repli, validation FHIR & On d\'etecte une corruption de fichier ou un mapping fautif \emph{avant} d'envoyer une mesure erron\'ee au DPI. \\
+      Disponibilit\'e   & Retry exponentiel, fallback SQLite, hot-reload & Une coupure r\'eseau de 30 minutes ne perd aucune mesure ; un nouveau profil ne demande pas de red\'emarrage. \\
+      Tra\c{c}abilit\'e & Logs JSON horodat\'es UTC, sans valeur clinique & On peut tout auditer (qui, quand, quoi) sans jamais cr\'eer un nouveau d\'ep\^ot de donn\'ees patient. \\
       \bottomrule
-    \end{tabular}
+    \end{tabularx}
   \end{center}
-  \note{Securite sur les quatre piliers CIA plus tracabilite. TLS 1.3 partout. Checksum sur tout ce qui transite. Retry et fallback pour la dispo. Logs sans valeur clinique pour respecter la minimisation. Rien n'est laisse au hasard.}
+  \note{Securite sur les quatre piliers CIA plus tracabilite. Pour chacun, la justification : pourquoi cette mise en oeuvre, et ce qu'elle previent concretement. La minimisation, c'est pas un slogan : le dashboard n'affiche jamais une donnee patient.}
 \end{frame}
 
 % =====================================================================
@@ -347,17 +349,27 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 % =====================================================================
 \partref{Partie 5/5 : L'\'ethique}
 \chref{Ch.7}
-\begin{frame}{Trois questions \'ethiques}
-  \begin{itemize}[leftmargin=*]
-    \item Responsabilit\'e du mapping : qui est responsable si une unit\'e est mal cod\'ee ?
-    \item Consentement au partage hub : distinct du consentement RGPD g\'en\'eral.
-    \item Risque de datafication : capter facilement n'invite pas \`a capter sans limite.
-  \end{itemize}
+\begin{frame}{Trois questions \'ethiques, trois r\'eponses}
+  \scriptsize
+  \begin{tabularx}{\linewidth}{p{4.4cm} X}
+    \toprule
+    \textbf{La question} & \textbf{Notre r\'eponse} \\
+    \midrule
+    \textbf{Responsabilit\'e du mapping.} Qui r\'epond si l'unit\'e est mal cod\'ee~? &
+    Le profil JSON est sign\'e et tra\c{c}\'e (auteur, version, date). Toute mesure publi\'ee porte la r\'ef\'erence du profil utilis\'e. La responsabilit\'e est nominative, pas diluee dans l'outil. \\
+    \addlinespace
+    \textbf{Consentement au partage hub.} Distinct du consentement RGPD g\'en\'eral. &
+    Le bridge \emph{produit} la donn\'ee, mais ne la \emph{partage pas} de lui-m\^eme. Le consentement BIHR/MetaHub reste g\'er\'e en amont par le DPI, qui filtre ce qu'il \'emet vers les hubs. \\
+    \addlinespace
+    \textbf{Risque de datafication.} Capter facilement n'invite pas \`a capter sans limite. &
+    Activer un dispositif est une d\'ecision explicite (profil JSON activ\'e), valid\'ee dans un comit\'e clinique. Aucun d\'eploiement automatique de tous les profils disponibles. \\
+    \bottomrule
+  \end{tabularx}
   \vspace{2mm}
   \begin{bridgewarn}[AIPD obligatoire en prod]
-    Avant tout d\'eploiement r\'eel, une analyse d'impact RGPD formelle, avec consultation du DPO de l'\'etablissement, est obligatoire (RGPD art. 35).
+    Avant tout d\'eploiement r\'eel, une analyse d'impact RGPD formelle, avec consultation du DPO de l'\'etablissement, est obligatoire (RGPD art.~35).
   \end{bridgewarn}
-  \note{Trois questions qu'on ne peut pas eluder. Qui est responsable si une unite est traduite a l'envers. Le consentement hub regional est distinct du RGPD general. Et le risque de tout capter parce qu'on en a la capacite. La technique ne dispense pas de la reflexion.}
+  \note{Trois questions qu'on ne peut pas eluder, et trois reponses concretes : signature des profils pour la responsabilite, separation bridge/DPI pour le consentement, comite clinique pour le risque de datafication. La technique ne dispense pas de la reflexion, mais elle peut l'outiller.}
 \end{frame}
 
 % =====================================================================
@@ -409,9 +421,7 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
   \item \textbf{5. L'\'ethique.} CIA + minimisation + AIPD obligatoire en prod.
 \end{itemize}
 
-\vspace{0.6em}
-\centerline{\textcolor{bridgeteal}{\itshape Cinq points pour vos camarades qui r\'evisent leur examen.}}
-\note{Slide 15. Seconde conclusion : synthese pedagogique, pour ancrer dans la memoire de mes camarades les 5 piliers du pitch.}
+\note{Slide 15. Seconde conclusion : synthese pedagogique, pour ancrer dans la memoire les 5 piliers du pitch.}
 \end{frame}
 
 % =====================================================================
@@ -421,24 +431,33 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{Ch.6}
 \begin{frame}{Et apr\`es ? L\`a o\`u nous en sommes}
 
-\begin{itemize}[leftmargin=*]
-  \item Statut juridique clarifi\'e : middleware d'int\'egration IT, \textbf{non-DM}.
-  \item Niveau \textbf{M2} de la pyramide mhealth.belgium vis\'e pour la production.
-  \item Argument \'economique : facteur 5 moins cher qu'un parc neuf nativement connect\'e.
-\end{itemize}
+\scriptsize
+\begin{tabularx}{\linewidth}{p{3.6cm} X}
+\toprule
+\textbf{Statut} & \textbf{Justification} \\
+\midrule
+\textbf{Non-DM} (middleware d'int\'egration IT) &
+Le bridge ne mesure pas, ne diagnostique pas, ne pilote aucun acte clinique. Il \emph{transporte} et \emph{traduit} des donn\'ees d\'ej\`a produites par des dispositifs marqu\'es CE. MDR 2017/745 art.~2 ne le qualifie donc pas de DM. \\
+\addlinespace
+\textbf{Niveau M2} mhealth.belgium &
+M1 = simple application info. M2 = outil utilisable dans un parcours de soin coordonn\'e. M3 = remboursable INAMI. M2 est l'objectif r\'ealiste : usage hospitalier dans un cadre d\'efini, sans pr\'etention de remboursement. \\
+\bottomrule
+\end{tabularx}
 
-\vspace{0.5em}
-\begin{tabular}{ll}
+\vspace{0.4em}
+\scriptsize
+\begin{tabularx}{\linewidth}{X r}
 \toprule
 \textbf{Indicateur} & \textbf{Cible} \\
 \midrule
-Latence p95 ingestion & moins de 500 ms \\
-Taux de transmission r\'eussie & sup\'erieur \`a 99 \% \\
-Minutes par soignant et par jour \'economis\'ees & sup\'erieur \`a 30 \\
+Latence p95 ingestion (capteur $\rightarrow$ HAPI) & $< 500$ ms \\
+Taux de transmission r\'eussie & $> 99~\%$ \\
+Minutes par soignant et par jour \'economis\'ees & $> 30$ \\
 Lignes de code modifi\'ees pour ajouter un dispositif & 0 \\
 \bottomrule
-\end{tabular}
-\note{Slide 16. Premier prolongement : ou la solution en est aujourd'hui sur les indicateurs et les niveaux de validation belges.}
+\end{tabularx}
+
+\note{Slide 16. Statut non-DM justifie par l'absence de mesure et de diagnostic. M2 justifie comme objectif realiste pour un middleware hospitalier non rembourse. Indicateurs concrets en bas.}
 \end{frame}
 
 % =====================================================================

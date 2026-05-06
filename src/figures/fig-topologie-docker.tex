@@ -1,7 +1,8 @@
 % =====================================================================
 % figures/fig-topologie-docker.tex
 % Topologie Docker Compose : 4 simulateurs + bridge + HAPI + MQTT broker.
-% Layout en 4 niveaux verticaux : sims, bus mqtt+volume, bridge+dashboard, hapi
+% Layout aere : etiquettes de protocole entre la rangee des sims et le bus,
+% bridge centre, dashboard et HAPI sur la meme rangee, auteur exterieur.
 % =====================================================================
 \begin{tikzpicture}[
   font=\sffamily,
@@ -45,97 +46,105 @@
     align=center, font=\bfseries\sffamily
   },
   protolbl/.style={
-    font=\scriptsize\itshape\sffamily, color=bridgegray, inner sep=1pt
+    rectangle, rounded corners=2pt,
+    fill=white, draw=bridgegray!40,
+    font=\scriptsize\itshape\sffamily, color=bridgegray,
+    inner sep=2pt
   },
   flowarrow/.style={-{Stealth[length=3mm]}, thick, draw=bridgeblue!80}
 ]
 
 % =====================================================================
-% Cadre du reseau Docker
+% Cadre du reseau Docker (un peu plus grand pour aerer)
 % =====================================================================
 \node[draw=bridgeblue, dashed, thick, fill=bridgesoft,
       rounded corners=4pt,
-      minimum width=15.6cm, minimum height=10.0cm,
+      minimum width=16.4cm, minimum height=11.0cm,
       anchor=south west,
       label={[anchor=north west, font=\footnotesize\bfseries,
               color=bridgeblue, xshift=8pt, yshift=-6pt]
-              north west: Reseau Docker bridge-demo}]
+              north west: Reseau Docker bridge-demo (\texttt{docker compose up})}]
       (net) at (0, 0) {};
 
 % =====================================================================
 % Niveau 1 : 4 simulateurs alignes en haut
 % =====================================================================
-\node[sim] (sim1) at (2.4, 8.6) {sim-monitor\\Philips};
-\node[sim] (sim2) at (5.6, 8.6) {sim-glucometer\\Masimo};
-\node[sim] (sim3) at (8.8, 8.6) {sim-spirometer\\Welch Allyn};
-\node[sim] (sim4) at (12.0, 8.6) {sim-pump\\Drager};
-
-% Etiquettes de protocole sous chaque sim, sans chevaucher
-\node[protolbl] at (2.4, 7.85) {TCP HL7v2};
-\node[protolbl] at (5.6, 7.85) {MQTT JSON};
-\node[protolbl] at (8.8, 7.85) {fichier XML};
-\node[protolbl] at (12.0, 7.85) {RS-232};
+\def\Ysim{9.4}
+\node[sim] (sim1) at (2.5, \Ysim) {sim-monitor\\Philips};
+\node[sim] (sim2) at (5.8, \Ysim) {sim-glucometer\\Masimo};
+\node[sim] (sim3) at (9.4, \Ysim) {sim-spirometer\\Welch Allyn};
+\node[sim] (sim4) at (13.4, \Ysim) {sim-pump\\Drager};
 
 % =====================================================================
-% Niveau 2 : Bus MQTT et volume partage
+% Niveau 1.5 : protocoles, bien separes des sims, fond blanc
 % =====================================================================
-\node[bus] (mqtt) at (5.6, 6.3) {MQTT broker\\eclipse-mosquitto};
-\node[vol] (vol)  at (8.8, 6.3) {Volume \texttt{drop/}};
+\def\Yproto{8.05}
+\node[protolbl] at (2.5, \Yproto) {TCP HL7v2};
+\node[protolbl] at (5.8, \Yproto) {MQTT JSON};
+\node[protolbl] at (9.4, \Yproto) {fichier XML};
+\node[protolbl] at (13.4, \Yproto) {RS-232 (TCP simule)};
 
 % =====================================================================
-% Niveau 3 : Bridge core (centre) et Dashboard (droite)
+% Niveau 2 : Bus MQTT et volume partage (alignes sous leur sim)
 % =====================================================================
-\node[bridgecore] (bridge) at (5.6, 4.0) {IoT Edge Bridge\\Python + FastAPI};
+\def\Ybus{6.6}
+\node[bus] (mqtt) at (5.8, \Ybus) {MQTT broker\\eclipse-mosquitto};
+\node[vol] (vol)  at (9.4, \Ybus) {Volume \texttt{drop/}};
+
+% =====================================================================
+% Niveau 3 : Bridge core (centre-gauche) et Dashboard (droite)
+% =====================================================================
+\def\Ybridge{4.2}
+\node[bridgecore] (bridge) at (5.8, \Ybridge) {IoT Edge Bridge\\Python + FastAPI};
 \node[font=\scriptsize\itshape, color=bridgegray, anchor=north]
-  at (5.6, 3.4) {Adapter . Parser . Mapper . Transport};
+  at (5.8, 3.55) {Adapter . Parser . Mapper . Transport};
 
-\node[dashbox] (dashb) at (12.0, 4.0) {Dashboard\\:8080};
-
-% =====================================================================
-% Niveau 4 : HAPI FHIR Server
-% =====================================================================
-\node[hapi] (hapi) at (5.6, 1.4) {HAPI FHIR Server\\:8081};
+\node[dashbox] (dashb) at (12.4, \Ybridge) {Dashboard\\:8080};
 
 % =====================================================================
-% Acteur exterieur (auteur)
+% Niveau 4 : HAPI FHIR Server (en bas, decale a gauche)
 % =====================================================================
-\node[anchor=west, font=\footnotesize\itshape, color=bridgegray]
-  (user) at (16.0, 4.0) {Auteur};
+\def\Yhapi{1.6}
+\node[hapi] (hapi) at (5.8, \Yhapi) {HAPI FHIR Server\\:8081};
+
+% =====================================================================
+% Acteur exterieur (auteur), juste au-dessus du dashboard
+% =====================================================================
+\node[anchor=south, font=\footnotesize\itshape, color=bridgegray]
+  (user) at (12.4, 6.0) {Auteur (navigateur)};
 
 % =====================================================================
 % Fleches : simulateurs vers leurs cibles
 % =====================================================================
-% sim1 (TCP) directement vers Bridge
-\draw[flowarrow] (sim1.south) -- ++(0, -0.3)
-                 -| ([xshift=-2.0cm]bridge.north);
+% sim1 (TCP HL7v2) directement vers Bridge (ancrage gauche)
+\draw[flowarrow] (sim1.south) -- ++(0, -0.5)
+                 -| ([xshift=-2.2cm]bridge.north);
 
-% sim2 (MQTT) vers MQTT broker
+% sim2 (MQTT) -> broker MQTT (verticale propre)
 \draw[flowarrow] (sim2.south) -- (mqtt.north);
 
-% sim3 (fichier) vers volume
+% sim3 (fichier) -> volume drop
 \draw[flowarrow] (sim3.south) -- (vol.north);
 
-% sim4 (RS-232) directement vers Bridge
-\draw[flowarrow] (sim4.south) -- ++(0, -0.3)
-                 -| ([xshift=2.0cm]bridge.north);
+% sim4 (RS-232) directement vers Bridge (ancrage droit)
+\draw[flowarrow] (sim4.south) -- ++(0, -0.5)
+                 -| ([xshift=2.2cm]bridge.north);
 
-% MQTT et volume vers Bridge
+% Broker MQTT et volume vers Bridge
 \draw[flowarrow] (mqtt.south)  -- ([xshift=-0.7cm]bridge.north);
 \draw[flowarrow] (vol.south)   -- ([xshift=0.7cm]bridge.north);
 
-% Bridge vers HAPI
+% Bridge -> HAPI (verticale, label a droite)
 \draw[flowarrow] (bridge.south) -- (hapi.north)
   node[midway, right=2pt, font=\scriptsize\itshape, color=bridgegray] {POST FHIR};
 
-% Bridge vers Dashboard
+% Bridge -> Dashboard (horizontale, label au-dessus)
 \draw[flowarrow] (bridge.east) -- (dashb.west)
   node[midway, above, font=\scriptsize\itshape, color=bridgegray] {WebSocket};
 
-% =====================================================================
-% Acces auteur vers Dashboard (en pointille, hors reseau Docker)
-% =====================================================================
+% Auteur -> Dashboard (en pointille, hors reseau Docker conceptuellement)
 \draw[->, dashed, thick, color=bridgegray]
-  (user.west) -- (dashb.east)
-  node[midway, above, font=\scriptsize\itshape, color=bridgegray] {HTTP};
+  (user.south) -- (dashb.north)
+  node[midway, right=2pt, font=\scriptsize\itshape, color=bridgegray] {HTTP};
 
 \end{tikzpicture}

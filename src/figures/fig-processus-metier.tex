@@ -1,86 +1,192 @@
 % =====================================================================
 % figures/fig-processus-metier.tex
-% Diagramme de processus metier BPMN simplifie : source -> bridge -> DPI -> soignant.
-% Swimlane horizontale a 4 lignes.
+% Diagramme de processus metier BPMN 2.0 complet.
+% Composants : pool & lanes, evenements (start, end), taches, gateway XOR,
+% flux de sequence, flux de message, annotations, legende.
 % =====================================================================
 \begin{tikzpicture}[
   font=\sffamily,
   every node/.style={font=\footnotesize\sffamily},
   >={Stealth[length=2.5mm]},
   thick,
-  source/.style={
-    rectangle, rounded corners=2pt,
-    draw=bridgealert, fill=bridgealert!10, text=bridgealert,
-    minimum width=2.4cm, minimum height=0.8cm, align=center,
-    inner sep=2pt, font=\footnotesize\sffamily
+  % --- Composants BPMN ----------------------------------------------
+  startevent/.style={
+    circle, draw=bridgegreen, line width=0.7pt,
+    fill=bridgegreen!12, text=bridgegreen,
+    minimum size=0.7cm, inner sep=0pt,
+    font=\tiny\bfseries\sffamily
   },
-  bridge/.style={
-    rectangle, rounded corners=2pt,
+  endevent/.style={
+    circle, draw=bridgealert, line width=1.6pt,
+    fill=bridgealert!12, text=bridgealert,
+    minimum size=0.7cm, inner sep=0pt,
+    font=\tiny\bfseries\sffamily
+  },
+  task/.style={
+    rectangle, rounded corners=4pt,
     draw=bridgeblue, fill=bridgeblue!10, text=bridgeblue,
-    minimum width=2.4cm, minimum height=0.8cm, align=center,
-    inner sep=2pt, font=\footnotesize\sffamily
+    minimum width=2.0cm, minimum height=0.85cm,
+    align=center, inner sep=2pt,
+    font=\scriptsize\sffamily
   },
-  dpi/.style={
-    rectangle, rounded corners=2pt,
-    draw=bridgeteal, fill=bridgeteal!12, text=bridgeteal,
-    minimum width=2.4cm, minimum height=0.8cm, align=center,
-    inner sep=2pt, font=\footnotesize\sffamily
+  bridgetask/.style={
+    task,
+    draw=bridgeteal, fill=bridgeteal!12, text=bridgeteal
   },
-  user/.style={
-    rectangle, rounded corners=2pt,
-    draw=bridgegreen, fill=bridgegreen!12, text=bridgegreen,
-    minimum width=2.4cm, minimum height=0.8cm, align=center,
-    inner sep=2pt, font=\footnotesize\sffamily
+  errtask/.style={
+    task,
+    draw=bridgealert, fill=bridgealert!10, text=bridgealert
   },
-  decision/.style={
-    diamond, draw=bridgeblue, fill=bridgeblue!8, text=bridgeblue,
-    minimum width=1.4cm, minimum height=1.0cm, inner sep=1pt,
-    font=\scriptsize\sffamily, aspect=1.6
+  gateway/.style={
+    diamond, aspect=1.4,
+    draw=bridgeblue, fill=bridgeblue!8, text=bridgeblue,
+    minimum width=1.1cm, minimum height=0.9cm,
+    inner sep=0pt,
+    font=\tiny\bfseries\sffamily
   },
-  flow/.style={-{Stealth[length=3mm]}, thick, draw=bridgeblue!80},
-  errflow/.style={-{Stealth[length=3mm]}, thick, dashed, draw=bridgealert}
+  annotation/.style={
+    rectangle, draw=bridgegray, dashed, fill=bridgegray!5,
+    text=bridgegray, align=left,
+    inner sep=2pt,
+    font=\scriptsize\itshape\sffamily
+  },
+  % --- Flux ---------------------------------------------------------
+  seqflow/.style={-{Stealth[length=2.5mm]}, thick, draw=bridgeblue!80},
+  errflow/.style={-{Stealth[length=2.5mm]}, thick, dashed, draw=bridgealert},
+  msgflow/.style={-{Stealth[length=2.5mm]}, thick, dotted, draw=bridgegray!90},
+  annlink/.style={dashed, draw=bridgegray!70}
 ]
 
-% --- Lignes (swim lanes) ---------------------------------------------
-\foreach \y/\name in {3.6/Source, 2.4/Bridge, 1.2/DPI, 0/Soignant}
-  \node[anchor=east, font=\footnotesize\bfseries\sffamily, color=bridgegray]
-    at (-0.2, \y) {\name};
+% =====================================================================
+% Pool + lanes
+% =====================================================================
+% 4 lanes (y du centre)
+\def\Lay{4.6}   % Source
+\def\Lbr{3.0}   % Bridge
+\def\Ldp{1.4}   % DPI
+\def\Lso{-0.2}  % Soignant
 
-% Lignes de separation
-\foreach \y in {3.0, 1.8, 0.6}
-  \draw[bridgegray!30, dashed] (-0.1,\y) -- (16.5,\y);
+% Bornes du pool
+\def\Lleft{0.0}
+\def\Lright{17.4}
+\def\Ltop{5.4}
+\def\Lbot{-0.9}
 
-% --- Bandeau Source --------------------------------------------------
-\node[source] (s1) at (1.2, 3.6) {Dispositif IoT\\ou logiciel Legacy};
-\node[font=\scriptsize\itshape, color=bridgegray]
-  at (s1.south)[anchor=north, yshift=-1pt] {emet trame};
+% En-tete de pool (gauche)
+\node[anchor=south, rotate=90, font=\scriptsize\bfseries\sffamily,
+      color=white, fill=bridgeblue, inner sep=4pt,
+      minimum height=0.8cm, minimum width=6.3cm]
+      (poolhead) at (-0.05, 2.25) {Pool : Mesure clinique - de la prise au DPI};
 
-% --- Bandeau Bridge --------------------------------------------------
-\node[bridge] (b1) at (4.0, 2.4) {Capture\\Adapter};
-\node[bridge] (b2) at (6.4, 2.4) {Parsing\\Mapping};
-\node[decision] (d1) at (8.8, 2.4) {Valide ?};
-\node[bridge] (b3) at (11.2, 2.4) {Transport\\mTLS};
+% Cadre du pool
+\draw[bridgeblue, thick] (\Lleft, \Lbot) rectangle (\Lright, \Ltop);
 
-% Quarantaine en cas d'erreur
-\node[bridge, fill=bridgealert!10, draw=bridgealert, text=bridgealert]
-  (q) at (8.8, 3.6) {Quarantaine\\+ alerte};
+% Lignes separatrices entre lanes (au milieu entre deux centres)
+\foreach \y in {3.8, 2.2, 0.6}
+  \draw[bridgeblue!30, dashed] (\Lleft, \y) -- (\Lright, \y);
 
-% --- Bandeau DPI -----------------------------------------------------
-\node[dpi] (dpi1) at (13.6, 1.2) {DPI hospitalier\\persiste FHIR};
+% Etiquettes des lanes (zone gauche du pool)
+\foreach \y/\name/\sub in {%
+  \Lay/Source/{IoT \textbar{} Legacy},%
+  \Lbr/Bridge/{IoT Edge Bridge},%
+  \Ldp/DPI/{HAPI FHIR},%
+  \Lso/Soignant/{Clinicien}}{%
+  \node[anchor=west, font=\scriptsize\bfseries\sffamily, color=bridgeblue]
+    at (0.1, \y + 0.18) {\name};
+  \node[anchor=west, font=\tiny\itshape\sffamily, color=bridgegray]
+    at (0.1, \y - 0.18) {\sub};
+}
 
-% --- Bandeau Soignant ------------------------------------------------
-\node[user] (u1) at (15.6, 0) {Consultation\\au DPI};
+% =====================================================================
+% Lane Source
+% =====================================================================
+\node[startevent] (start) at (1.9, \Lay) {};
+\node[font=\tiny\itshape, color=bridgegray, anchor=north]
+  at (start.south)[yshift=-1pt] {prise};
 
-% --- Fleches du flux nominal -----------------------------------------
-\draw[flow] (s1.south) -- (b1.north -| s1.south);
-\draw[flow] (s1.south) |- (b1.west);
-\draw[flow] (b1.east) -- (b2.west);
-\draw[flow] (b2.east) -- (d1.west);
-\draw[flow] (d1.east) -- (b3.west) node[midway, above, font=\scriptsize] {oui};
-\draw[flow] (b3.south) |- (dpi1.west);
-\draw[flow] (dpi1.south) |- (u1.west);
+\node[task] (emit) at (3.6, \Lay) {Emettre\\trame};
 
-% --- Fleche d'erreur -------------------------------------------------
-\draw[errflow] (d1.north) -- (q.south) node[midway, right, font=\scriptsize, color=bridgealert] {non};
+% =====================================================================
+% Lane Bridge (taches sequentielles + gateway de validation)
+% =====================================================================
+\node[bridgetask] (capture) at (5.7, \Lbr) {Capture\\Adapter};
+\node[bridgetask] (parse)   at (7.7, \Lbr) {Parser\\Mapper};
+\node[gateway]    (gw)      at (9.4, \Lbr) {valide ?};
+\node[bridgetask] (transp)  at (11.2, \Lbr) {Transport\\mTLS};
+
+% Branche rejet : tache de quarantaine au-dessus de la lane Bridge
+\node[errtask] (quar) at (9.4, 4.6) {Quarantaine\\+ alerte};
+
+% =====================================================================
+% Lane DPI
+% =====================================================================
+\node[task] (persist) at (13.2, \Ldp) {Persister\\Bundle FHIR};
+\node[task] (index)   at (15.2, \Ldp) {Indexer};
+
+% =====================================================================
+% Lane Soignant
+% =====================================================================
+\node[task]     (consult) at (15.2, \Lso) {Consulter\\au DPI};
+\node[endevent] (end)     at (16.7, \Lso) {};
+
+% =====================================================================
+% Flux de sequence (intra-lane)
+% =====================================================================
+\draw[seqflow] (start.east) -- (emit.west);
+\draw[seqflow] (capture.east) -- (parse.west);
+\draw[seqflow] (parse.east) -- (gw.west);
+\draw[seqflow] (gw.east) -- node[above, font=\tiny, color=bridgegreen]{oui} (transp.west);
+\draw[errflow] (gw.north) -- node[right=1pt, font=\tiny, color=bridgealert]{non} (quar.south);
+\draw[seqflow] (persist.east) -- (index.west);
+\draw[seqflow] (consult.east) -- (end.west);
+
+% =====================================================================
+% Flux de messages (inter-lane, pointilles)
+% =====================================================================
+\draw[msgflow] (emit.south) -- ++(0,-0.45) -| (capture.north);
+\draw[msgflow] (transp.south) -- ++(0,-0.6) -| (persist.north);
+\draw[msgflow] (index.south) -- ++(0,-0.4) -| (consult.north);
+
+% =====================================================================
+% Annotations
+% =====================================================================
+\node[annotation, anchor=south west] at (4.8, 5.05)
+  {RS-232 \textbar{} MQTT \textbar{} TCP MLLP \textbar{} fichier};
+\draw[annlink] (5.8, 5.05) -- (5.8, 4.95);
+
+\node[annotation, anchor=west] at (10.5, 4.6)
+  {Hors plage de plausibilite\\ou format invalide};
+\draw[annlink] (quar.east) -- (10.5, 4.6);
+
+\node[annotation, anchor=south] at (12.2, 2.05)
+  {Bundle FHIR R4 transaction\\Patient + Device + Observation};
+\draw[annlink] (12.2, 2.05) -- (12.2, 1.95);
+
+% =====================================================================
+% Legende compacte (sous le pool)
+% =====================================================================
+\begin{scope}[shift={(0, -2.2)}]
+  \node[anchor=west, font=\scriptsize\bfseries\sffamily, color=bridgegray]
+    at (0, 0.0) {Legende :};
+
+  \node[startevent] (l1) at (1.6, 0) {};
+  \node[anchor=west, font=\tiny\sffamily, color=bridgegray] at (2.0, 0) {Debut};
+
+  \node[task, minimum width=1.1cm, minimum height=0.45cm] (l2) at (3.7, 0) {Tache};
+
+  \node[gateway, minimum width=0.8cm, minimum height=0.55cm] (l3) at (5.4, 0) {};
+  \node[anchor=west, font=\tiny\sffamily, color=bridgegray] at (5.95, 0) {Decision};
+
+  \draw[seqflow] (7.9, 0) -- (8.7, 0);
+  \node[anchor=west, font=\tiny\sffamily, color=bridgegray] at (8.8, 0) {Flux sequence};
+
+  \draw[msgflow] (11.1, 0) -- (11.9, 0);
+  \node[anchor=west, font=\tiny\sffamily, color=bridgegray] at (12.0, 0) {Flux message};
+
+  \draw[errflow] (14.0, 0) -- (14.8, 0);
+  \node[anchor=west, font=\tiny\sffamily, color=bridgegray] at (14.9, 0) {Erreur};
+
+  \node[endevent] (l9) at (16.7, 0) {};
+\end{scope}
 
 \end{tikzpicture}
