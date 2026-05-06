@@ -68,6 +68,7 @@
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{listings}
+\usepackage{enumitem}
 
 % --- Styles listings -------------------------------------------------
 \lstdefinestyle{bridgebase}{%
@@ -98,6 +99,9 @@
 \setbeamercolor{block title}{bg=bridgeteal,fg=white}
 \setbeamercolor{block body}{bg=bridgeteal!8,fg=black}
 
+% --- Desactivation explicite des slides de section automatiques ------
+\metroset{sectionpage=none}
+
 % --- Encadres colores (warn / info / key / note) ---------------------
 \newenvironment{bridgewarn}[1][Attention]{%
   \begin{beamercolorbox}[wd=\textwidth,sep=2mm,rounded=true]{block body}%
@@ -118,19 +122,24 @@
   \end{beamercolorbox}%
 }
 
-% --- Footer custom : "Ch.X - Titre" en bas droit ---------------------
-% On utilise une commande \chref a redefinir dans chaque frame.
-\newcommand{\chref}[1]{\gdef\@chref{#1}}
-\chref{}
+% --- Footer custom 3 zones : auteur | partie | chapitre + n slide ----
+% Variables sans @ pour eviter les problemes de catcode hors preambule.
+\newcommand{\PartCurrent}{}
+\newcommand{\ChCurrent}{}
+\newcommand{\partref}[1]{\renewcommand{\PartCurrent}{#1}}
+\newcommand{\chref}[1]{\renewcommand{\ChCurrent}{#1}}
 
 \setbeamertemplate{footline}{%
   \leavevmode%
   \hbox{%
-    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.5ex,dp=1ex,leftskip=2ex]{author in head/foot}%
+    \begin{beamercolorbox}[wd=0.33\paperwidth,ht=2.5ex,dp=1ex,leftskip=2ex]{author in head/foot}%
       \usebeamerfont{author in head/foot}\insertshortauthor%
     \end{beamercolorbox}%
-    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.5ex,dp=1ex,rightskip=2ex]{title in head/foot}%
-      \usebeamerfont{title in head/foot}\hfill\textcolor{bridgegray}{\@chref}\quad\insertframenumber/\inserttotalframenumber%
+    \begin{beamercolorbox}[wd=0.34\paperwidth,ht=2.5ex,dp=1ex,center]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\textcolor{bridgegray}{\PartCurrent}%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.33\paperwidth,ht=2.5ex,dp=1ex,rightskip=2ex]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\hfill\textcolor{bridgegray}{\ChCurrent}\quad\insertframenumber/\inserttotalframenumber%
     \end{beamercolorbox}%
   }%
 }
@@ -148,8 +157,9 @@
 \begin{document}
 
 % =====================================================================
-% COUVERTURE
+% F1. COUVERTURE
 % =====================================================================
+\partref{}
 \chref{}
 \begin{frame}[plain]
   \titlepage
@@ -157,37 +167,31 @@
 \end{frame}
 
 % =====================================================================
-% ACCROCHE NARRATIVE
+% F2. PREAMBULE NARRATIF
 % =====================================================================
-\chref{Accroche}
-\begin{frame}{L'histoire qu'on va raconter}
-  \begin{center}
-    \resizebox{0.92\textwidth}{!}{\input{figures/fig-chaos-ordre.tex}}\\[2mm]
-    {\itshape\small Du chaos des dispositifs Legacy \`a l'ordre du BIHR. En 10 minutes.}
-  \end{center}
-  \note{Voici notre fil conducteur. A gauche le chaos, a droite l'ordre. Au milieu, ce qu'on va construire ensemble pendant ce pitch. Cette image reviendra a la fin.}
+\partref{Partie 1/5 : Le contexte}
+\chref{Ch.1}
+\begin{frame}{Le contexte}
+\begin{itemize}[leftmargin=*]
+  \item L'h\^opital belge produit chaque jour des milliers de mesures vitales.
+  \item Ces mesures viennent de moniteurs, pompes, glucom\`etres, ventilateurs, parfois m\^eme de logiciels Legacy d\'eploy\'es il y a 15 ans.
+  \item Le \alert{Plan eSant\'e 2025-2027} les veut toutes dans le BIHR, pour le clinicien, pour le patient, pour la recherche.
+  \item Pourtant, presque aucune ne s'y rend automatiquement. Le verrou n'est pas la volont\'e, c'est l'\alert{interop\'erabilit\'e}.
+  \item Et toucher au mat\'eriel certifi\'e casse son marquage CE.
+\end{itemize}
+
+\vspace{1em}
+\begin{bridgekey}[Le mandat]
+Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'histoire qu'on va vivre dans les 10 prochaines minutes.
+\end{bridgekey}
+\note{Slide 2. On commence par poser le contexte humain et professionnel. Ce n'est pas un probleme theorique : ces mesures existent, elles ne se rendent pas au DPI, et c'est mauvais pour le patient.}
 \end{frame}
 
 % =====================================================================
-% PARTIE 1/7 : PROBLEME ET PROCESSUS METIER
+% F3. PROCESSUS METIER
 % =====================================================================
-\section{1. Le probleme}
-
-\chref{Ch.1 --- Le probl\`eme}
-\begin{frame}{Le probl\`eme : 0~\% au stade 4}
-  \begin{itemize}
-    \item Plan eSant\'e belge 2025-2027 cible le BIHR comme colonne vert\'ebrale.
-    \item Aucun h\^opital \'echantillonn\'e n'int\`egre automatiquement ses dispositifs au DPI.
-    \item Le parc Legacy a 15 \`a 20 ans, les standards changent tous les 3 \`a 5 ans.
-  \end{itemize}
-  \vspace{2mm}
-  \begin{bridgewarn}[Verrou MDR 2017/745]
-    Modifier un dispositif certifi\'e supprime son marquage CE. On ne peut donc rien toucher au mat\'eriel.
-  \end{bridgewarn}
-  \note{Le BIHR est en marche, mais le terrain ne suit pas. Personne n'integre automatiquement. Et on ne peut pas remplacer le parc, car le MDR interdit toute modification d'un dispositif certifie. Voila notre verrou de depart.}
-\end{frame}
-
-\chref{Ch.1 --- Processus m\'etier}
+\partref{Partie 1/5 : Le contexte}
+\chref{Ch.1}
 \begin{frame}{Le processus m\'etier qu'on automatise}
   \begin{center}
     \resizebox{\linewidth}{!}{\input{figures/fig-processus-metier.tex}}\\[2mm]
@@ -197,59 +201,23 @@
 \end{frame}
 
 % =====================================================================
-% PARTIE 2/7 : SOLUTION, APPLICATIONS ET FONCTIONNALITES
+% F4. VUE SCHEMATIQUE DES ECHANGES
 % =====================================================================
-\section{2. Applications et fonctionnalit\'es}
-
-\chref{Ch.4 --- Notre r\'eponse}
-\begin{frame}{Notre r\'eponse : un middleware configurable}
-  \begin{center}
-    \resizebox{0.88\textwidth}{!}{\input{figures/fig-pipeline-4couches.tex}}\\[2mm]
-    {\itshape\small Quatre couches enfichables. Une question simple par dispositif : quel canal, quelle langue, quelle sortie ?}
-  \end{center}
-  \note{Quatre couches. Adapter capte le canal. Parser decode la langue. Mapper codifie en LOINC et FHIR. Transport publie de maniere securisee. Pour ajouter un dispositif, on repond a trois questions dans un fichier JSON. Aucune ligne de code.}
-\end{frame}
-
-\chref{Ch.2 \& Ch.7 --- Dashboard OT}
-\begin{frame}{Le dashboard, vu c\^ot\'e technicien biom\'edical}
-  \begin{columns}[T]
-    \begin{column}{0.58\textwidth}
-      \fbox{\parbox{0.95\linewidth}{\centering\itshape\small
-        Capture du dashboard : grille de 5 cartes \'equipement (vert/orange/rouge),
-        compteurs OT (\'equipements connect\'es, messages trait\'es, quarantaine),
-        timeline activit\'e, l\'egende permanente.}}
-    \end{column}
-    \begin{column}{0.40\textwidth}
-      \begin{itemize}
-        \item Statut couleur en 1 coup d'\oe il
-        \item Compteurs temps r\'eel
-        \item \'Edition des profils JSON
-        \item Aucune valeur clinique patient
-      \end{itemize}
-    \end{column}
-  \end{columns}
-  \vspace{1mm}
-  \begin{bridgekey}[R\`egle de minimisation]
-    Le dashboard regarde les flux, pas le contenu clinique. Les techniciens biom\'edicaux voient \emph{que} \c{c}a circule, pas \emph{ce qui} circule.
-  \end{bridgekey}
-  \note{Le dashboard parle aux techniciens biomedicaux et a l'OT, pas aux soignants. Il montre les flux, jamais la valeur patient. C'est un choix structurant : la donnee clinique passe au DPI, le dashboard garde l'oeil sur le tuyau.}
-\end{frame}
-
-% =====================================================================
-% PARTIE 3/7 : INTEGRATION ET ECHANGES
-% =====================================================================
-\section{3. Int\'egration et \'echanges de donn\'ees}
-
-\chref{Ch.3 --- Vue d'int\'egration}
+\partref{Partie 2/5 : Le syst\`eme}
+\chref{Ch.3}
 \begin{frame}{Vue sch\'ematique des \'echanges}
   \begin{center}
     \resizebox{0.92\textwidth}{!}{\input{figures/fig-chaos-ordre.tex}}\\[2mm]
-    {\itshape\small \`A gauche, 6 sources h\'et\'erog\`enes. Au centre, un seul middleware. \`A droite, le DPI et le BIHR uniformis\'es.}
+    {\itshape\small \`A gauche, des sources h\'et\'erog\`enes. Au centre, un seul middleware. \`A droite, le DPI et le BIHR uniformis\'es.}
   \end{center}
-  \note{La meme image que tout a l'heure, mais lue autrement. Cote gauche, six dialectes differents. Cote droit, un seul format standardise. La passerelle est le traducteur unique.}
+  \note{A gauche le chaos, six dialectes differents. Au centre la passerelle, traducteur unique. A droite l'ordre, un seul format standardise vers le DPI et le BIHR.}
 \end{frame}
 
-\chref{Ch.3 --- Standards}
+% =====================================================================
+% F5. STANDARDS DE L'INTEROPERABILITE
+% =====================================================================
+\partref{Partie 2/5 : Le syst\`eme}
+\chref{Ch.3}
 \begin{frame}{Les standards qui font le pont}
   \begin{center}
     \begin{tabular}{ll}
@@ -269,12 +237,24 @@
 \end{frame}
 
 % =====================================================================
-% PARTIE 4/7 : ARCHITECTURE TECHNIQUE
+% F6. ARCHITECTURE TECHNIQUE : FONDEMENTS (4 COUCHES)
 % =====================================================================
-\section{4. Architecture technique}
+\partref{Partie 3/5 : L'architecture}
+\chref{Ch.4}
+\begin{frame}{L'architecture : quatre couches enfichables}
+  \begin{center}
+    \resizebox{0.88\textwidth}{!}{\input{figures/fig-pipeline-4couches.tex}}\\[2mm]
+    {\itshape\small Adapter capte le canal. Parser d\'ecode la langue. Mapper codifie. Transport publie en s\'ecurit\'e.}
+  \end{center}
+  \note{Quatre couches. Adapter capte le canal. Parser decode la langue. Mapper codifie en LOINC et FHIR. Transport publie de maniere securisee. Pour ajouter un dispositif, on repond a trois questions dans un fichier JSON. Aucune ligne de code.}
+\end{frame}
 
-\chref{Ch.4 --- Architecture}
-\begin{frame}{L'architecture technique en une vue}
+% =====================================================================
+% F7. ARCHITECTURE TECHNIQUE : TOPOLOGIE DOCKER
+% =====================================================================
+\partref{Partie 3/5 : L'architecture}
+\chref{Ch.4}
+\begin{frame}{Topologie Docker : tout sur un poste}
   \begin{center}
     \resizebox{0.88\textwidth}{!}{\input{figures/fig-topologie-docker.tex}}\\[2mm]
     {\itshape\small 7 conteneurs orchestr\'es par Docker Compose. \texttt{docker compose up} lance tout.}
@@ -282,7 +262,11 @@
   \note{Sept conteneurs sur un meme reseau Docker. Quatre simulateurs, le bridge, HAPI FHIR, et un broker MQTT. Tout tient sur un poste local. Reproductible a l'identique chez n'importe lequel d'entre vous.}
 \end{frame}
 
-\chref{Ch.4 --- Stack technologique}
+% =====================================================================
+% F8. STACK TECHNOLOGIQUE
+% =====================================================================
+\partref{Partie 3/5 : L'architecture}
+\chref{Ch.4}
 \begin{frame}{Stack technologique}
   \begin{center}
     \begin{tabular}{ll}
@@ -302,11 +286,10 @@
 \end{frame}
 
 % =====================================================================
-% PARTIE 5/7 : CAPTEURS ET DISPOSITIFS
+% F9. CHAINE CAPTEUR-ACTIONNEUR
 % =====================================================================
-\section{5. Capteurs et dispositifs}
-
-\chref{Ch.5 --- Cha\^ine capteur-actionneur}
+\partref{Partie 4/5 : Les capteurs}
+\chref{Ch.5}
 \begin{frame}{La cha\^ine IoT m\'edicale et notre point d'insertion}
   \begin{center}
     \resizebox{0.92\textwidth}{!}{\input{figures/fig-chaine-capteur-actionneur.tex}}\\[2mm]
@@ -315,7 +298,11 @@
   \note{Dans la chaine classique capteur, conditionnement, transmission, application, on s'insere uniquement au niveau application. On n'ouvre aucun boitier. C'est cette capture passive qui nous garde compatibles MDR.}
 \end{frame}
 
-\chref{Ch.5 --- \'Equipements de la d\'emo}
+% =====================================================================
+% F10. QUATRE EQUIPEMENTS REPRESENTATIFS
+% =====================================================================
+\partref{Partie 4/5 : Les capteurs}
+\chref{Ch.5}
 \begin{frame}{Quatre \'equipements, quatre canaux}
   \begin{center}
     \scriptsize
@@ -335,54 +322,10 @@
 \end{frame}
 
 % =====================================================================
-% PARTIE 6/7 : EVALUATION ET PERSPECTIVES
+% F11. SECURITE ET CONFIDENTIALITE PAR CONSTRUCTION
 % =====================================================================
-\section{6. \'Evaluation et perspectives}
-
-\chref{Ch.6 --- \'Evaluation}
-\begin{frame}{\'Evaluation : o\`u en sommes-nous ?}
-  \begin{itemize}
-    \item Statut juridique : middleware d'int\'egration IT, \textbf{non-DM}.
-    \item Pyramide mhealth.belgium : niveau M2 vis\'e en d\'emo (s\'ecurit\'e + interop\'erabilit\'e).
-    \item Argument m\'edico-\'economique : facteur 5 moins cher qu'un parc neuf.
-  \end{itemize}
-  \vspace{1mm}
-  \begin{center}
-    \scriptsize
-    \begin{tabular}{ll}
-      \toprule
-      \textbf{KPI} & \textbf{Cible} \\
-      \midrule
-      Latence p95 ingestion                                       & moins de 500 ms \\
-      Taux de transmission r\'eussie                              & sup\'erieur \`a 99~\% \\
-      Minutes \'economis\'ees par soignant et par jour            & sup\'erieur \`a 30 \\
-      Lignes de code modifi\'ees pour ajouter un dispositif       & 0 \\
-      \bottomrule
-    \end{tabular}
-  \end{center}
-  \note{Statut non-DM, ca simplifie tout. Niveau M2 vise. Cinq fois moins cher qu'un remplacement de parc. Et surtout, zero ligne de code pour ajouter un nouveau dispositif. C'est mesurable, c'est tenable, c'est notre engagement.}
-\end{frame}
-
-\chref{Roadmap}
-\begin{frame}{Trois \'evolutions sur la roadmap}
-  \begin{itemize}
-    \item F1. Plugins de traduction communautaires (mod\`ele HACS, npm).
-    \item F2. Anomaly detection en bord (IA l\'eg\`ere ONNX).
-    \item F3. F\'ed\'eration europ\'eenne EHDS (mobilit\'e transfrontali\`ere).
-  \end{itemize}
-  \vspace{2mm}
-  \begin{bridgeinfo}[Effet de catalogue]
-    Aucun \'editeur ne peut couvrir seul tous les dispositifs m\'edicaux du monde. La communaut\'e \'ecrit ses plugins. Le bridge devient un standard de fait.
-  \end{bridgeinfo}
-  \note{La passerelle est concue pour grandir. Plugins communautaires comme HACS pour Home Assistant. IA legere en bord pour pre-flagger les aberrations. Federation EHDS pour la mobilite europeenne. Le code est pret a recevoir tout ca.}
-\end{frame}
-
-% =====================================================================
-% PARTIE 7/7 : DEFIS ETHIQUES, SECURITE, CONFIDENTIALITE
-% =====================================================================
-\section{7. Securite, confidentialite, ethique}
-
-\chref{Ch.7 --- S\'ecurit\'e}
+\partref{Partie 5/5 : L'\'ethique}
+\chref{Ch.7}
 \begin{frame}{S\'ecurit\'e et confidentialit\'e par construction}
   \begin{center}
     \begin{tabular}{ll}
@@ -399,9 +342,13 @@
   \note{Securite sur les quatre piliers CIA plus tracabilite. TLS 1.3 partout. Checksum sur tout ce qui transite. Retry et fallback pour la dispo. Logs sans valeur clinique pour respecter la minimisation. Rien n'est laisse au hasard.}
 \end{frame}
 
-\chref{Ch.7 --- \'Ethique}
+% =====================================================================
+% F12. DEFIS ETHIQUES
+% =====================================================================
+\partref{Partie 5/5 : L'\'ethique}
+\chref{Ch.7}
 \begin{frame}{Trois questions \'ethiques}
-  \begin{itemize}
+  \begin{itemize}[leftmargin=*]
     \item Responsabilit\'e du mapping : qui est responsable si une unit\'e est mal cod\'ee ?
     \item Consentement au partage hub : distinct du consentement RGPD g\'en\'eral.
     \item Risque de datafication : capter facilement n'invite pas \`a capter sans limite.
@@ -414,29 +361,9 @@
 \end{frame}
 
 % =====================================================================
-% SYNTHESE NARRATIVE
+% F13. TRANSITION DEMO
 % =====================================================================
-\chref{}
-\begin{frame}{L'histoire en une slide}
-  \begin{enumerate}
-    \item Le probl\`eme : 0~\% stade 4, MDR verrou, parc 15-20 ans.
-    \item La solution : middleware 4 couches configurable, dashboard OT.
-    \item L'int\'egration : HL7 v2, FHIR R4, LOINC, IHE PCD.
-    \item L'architecture : Python + Docker, 7 conteneurs orchestr\'es.
-    \item Les capteurs : 4 protocoles, 1 c\oe ur, profils JSON.
-    \item L'\'evaluation : non-DM, M2 vis\'e, facteur 5 \'economique.
-    \item L'\'ethique : minimisation, AIPD, gouvernance partag\'ee.
-  \end{enumerate}
-  \vspace{1mm}
-  \begin{center}
-    {\itshape\small Le bridge transforme le chaos en ordre interop\'erable. Sans toucher au mat\'eriel.}
-  \end{center}
-  \note{Sept lignes, sept parties. Si vous ne devez retenir qu'une slide, c'est celle-ci. Le bridge transforme le chaos en ordre, sans toucher au materiel. Voila la promesse, voila la livraison.}
-\end{frame}
-
-% =====================================================================
-% TRANSITION DEMO
-% =====================================================================
+\partref{}
 \chref{D\'emo}
 \begin{frame}[plain]{Place \`a la d\'emo}
   \vspace{1.5cm}
@@ -448,9 +375,97 @@
 \end{frame}
 
 % =====================================================================
-% MERCI / Q&R
+% F14. CONCLUSION 1 : "L'HISTOIRE QUE JE VOUS AI RACONTEE"
 % =====================================================================
-\chref{Merci}
+\partref{}
+\chref{}
+\begin{frame}{L'histoire que je vous ai racont\'ee}
+
+\begin{itemize}[leftmargin=*]
+  \item Au d\'ebut, il y avait des dispositifs qui ne se parlaient pas, et des donn\'ees qui n'arrivaient pas au DPI.
+  \item Nous avons pos\'e un middleware au milieu, configurable, transparent, attentif aux r\`egles MDR et RGPD.
+  \item Quatre couches Adapter, Parser, Mapper, Transport, le m\^eme c\oe ur pour quatre canaux diff\'erents.
+  \item Une supervision OT pour les techniciens biom\'edicaux, sans jamais exposer une donn\'ee patient.
+  \item Une ouverture aux plugins, pour qu'aucun \'editeur seul ne soit le goulet du futur.
+\end{itemize}
+
+\vspace{0.6em}
+\centerline{\itshape\large Le chaos est devenu de l'ordre. Sans toucher au mat\'eriel.}
+\note{Slide 14. C'est le moment de clore le recit. Premiere conclusion : narrative. On rappelle l'arc complet.}
+\end{frame}
+
+% =====================================================================
+% F15. CONCLUSION 2 : "L'HISTOIRE EN UNE SLIDE"
+% =====================================================================
+\partref{}
+\chref{}
+\begin{frame}{L'histoire en une slide}
+
+\begin{itemize}[label={}, leftmargin=*]
+  \item \textbf{1. Le contexte.} Mesures captives, BIHR attendu, MDR verrou.
+  \item \textbf{2. Le syst\`eme.} 4 sources, 1 c\oe ur, FHIR R4 en sortie.
+  \item \textbf{3. L'architecture.} Adapter, Parser, Mapper, Transport, Docker, Python.
+  \item \textbf{4. Les capteurs.} 4 protocoles, 4 \'equipements, 8 codes LOINC.
+  \item \textbf{5. L'\'ethique.} CIA + minimisation + AIPD obligatoire en prod.
+\end{itemize}
+
+\vspace{0.6em}
+\centerline{\textcolor{bridgeteal}{\itshape Cinq points pour vos camarades qui r\'evisent leur examen.}}
+\note{Slide 15. Seconde conclusion : synthese pedagogique, pour ancrer dans la memoire de mes camarades les 5 piliers du pitch.}
+\end{frame}
+
+% =====================================================================
+% F16. OUVERTURE : OU EN SOMMES-NOUS
+% =====================================================================
+\partref{Ouverture sur le futur}
+\chref{Ch.6}
+\begin{frame}{Et apr\`es ? L\`a o\`u nous en sommes}
+
+\begin{itemize}[leftmargin=*]
+  \item Statut juridique clarifi\'e : middleware d'int\'egration IT, \textbf{non-DM}.
+  \item Niveau \textbf{M2} de la pyramide mhealth.belgium vis\'e pour la production.
+  \item Argument \'economique : facteur 5 moins cher qu'un parc neuf nativement connect\'e.
+\end{itemize}
+
+\vspace{0.5em}
+\begin{tabular}{ll}
+\toprule
+\textbf{Indicateur} & \textbf{Cible} \\
+\midrule
+Latence p95 ingestion & moins de 500 ms \\
+Taux de transmission r\'eussie & sup\'erieur \`a 99 \% \\
+Minutes par soignant et par jour \'economis\'ees & sup\'erieur \`a 30 \\
+Lignes de code modifi\'ees pour ajouter un dispositif & 0 \\
+\bottomrule
+\end{tabular}
+\note{Slide 16. Premier prolongement : ou la solution en est aujourd'hui sur les indicateurs et les niveaux de validation belges.}
+\end{frame}
+
+% =====================================================================
+% F17. OUVERTURE : ROADMAP F1/F2/F3
+% =====================================================================
+\partref{Ouverture sur le futur}
+\chref{Roadmap}
+\begin{frame}{Et apr\`es ? Trois \'evolutions \`a venir}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{F1.} Plugins de traduction communautaires (mod\`ele HACS, npm).
+  \item \textbf{F2.} D\'etection d'anomalies en bord (IA l\'eg\`ere ONNX).
+  \item \textbf{F3.} F\'ed\'eration europ\'eenne EHDS (mobilit\'e transfrontali\`ere).
+\end{itemize}
+
+\vspace{0.6em}
+\begin{bridgeinfo}[Effet de catalogue]
+Aucun \'editeur seul ne couvre tous les dispositifs m\'edicaux du monde. La communaut\'e \'ecrit ses plugins. Le bridge devient un standard de fait.
+\end{bridgeinfo}
+\note{Slide 17. Deuxieme prolongement : ce qu'on imagine pour la suite, et la dynamique communautaire qui rend cette suite plausible.}
+\end{frame}
+
+% =====================================================================
+% F18. MERCI / Q&R
+% =====================================================================
+\partref{}
+\chref{}
 \begin{frame}[plain]{Merci}
   \vspace{1.5cm}
   \begin{center}
