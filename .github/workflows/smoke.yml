@@ -1,0 +1,100 @@
+# =====================================================================
+# CI : smoke test de la demo dockerisee.
+#
+# A chaque push sur main et chaque pull request, on construit les
+# images Docker, on lance la stack complete, on attend qu'elle se
+# stabilise, et on execute le smoke_test qui verifie 14 routes.
+#
+# Si une regression apparait (ex. le bug Starlette 1.0 / TemplateResponse),
+# le workflow echoue et la PR est bloquee.
+# =====================================================================
+
+name: smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'demo/**'
+      - '.github/workflows/smoke.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'demo/**'
+      - '.github/workflows/smoke.yml'
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images and start stack
+        working-directory: demo
+        run: docker compose up -d --build
+
+      - name: Wait for HAPI FHIR
+        run: |
+          echo "Attente de HAPI FHIR (max 90 s)..."
+          for i in $(seq 1 90); do
+            if curl --fail --silent http://localhost:8081/fhir/metadata > /dev/null 2>&1; then
+              echo "HAPI pret apres ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "HAPI n'a pas demarre dans le delai imparti"
+          docker compose logs hapi
+          exit 1
+
+      - name: Wait for Bridge healthy
+        run: |
+          echo "Attente du bridge (max 60 s)..."
+          for i in $(seq 1 60); do
+            if curl --fail --silent http://localhost:8080/health > /dev/null 2>&1; then
+              echo "Bridge pret apres ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Bridge n'a pas demarre"
+          docker compose logs bridge
+          exit 1
+
+      - name: Run smoke test
+        working-directory: demo
+        run: bash scripts/smoke_test.sh
+
+      - name: Wait for messages then verify Observations on HAPI
+        run: |
+          echo "Attente de production de messages par les simulateurs..."
+          sleep 45
+          response=$(curl --silent "http://localhost:8081/fhir/Observation?_summary=count")
+          total=$(echo "$response" | grep -oE '"total":[[:space:]]*[0-9]+' | grep -oE '[0-9]+')
+          echo "Observations FHIR sur HAPI : ${total:-0}"
+          if [ -z "$total" ] || [ "$total" -lt 1 ]; then
+            echo "Aucune Observation produite : echec E2E"
+            docker compose logs bridge | tail -50
+            exit 1
+          fi
+          echo "Test E2E reussi : $total observations publiees"
+
+      - name: Print bridge logs (last 30 lines, on success)
+        if: success()
+        run: docker compose -f demo/docker-compose.yml logs --tail 30 bridge
+
+      - name: Print all containers logs (on failure)
+        if: failure()
+        run: docker compose -f demo/docker-compose.yml logs --tail 100
+
+      - name: Tear down
+        if: always()
+        working-directory: demo
+        run: docker compose down -v
