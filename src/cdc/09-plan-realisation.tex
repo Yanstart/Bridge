@@ -1,0 +1,112 @@
+\chapter{Plan de réalisation}
+\label{ch:plan-realisation}
+
+Ce chapitre détaille le découpage en lots, la chronologie prévisionnelle et la méthodologie retenue pour un développeur unique. Il fixe les jalons de passage et fournit un Gantt simplifié sur la période mai 2026 à mars 2027.
+
+\section{WBS : découpage en lots}
+\label{sec:wbs}
+
+Le projet est découpé en douze lots numérotés L0 à L11. Chaque lot porte des livrables identifiables, ce qui permet de mesurer l'avancement à intervalle régulier.
+
+\bridgezebra
+\begin{longtable}{p{1.5cm}p{6cm}p{7cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Lot} & {\color{white}\bfseries Description} & {\color{white}\bfseries Livrables} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Lot} & {\color{white}\bfseries Description} & {\color{white}\bfseries Livrables} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  L0  & Cadrage : charte projet, mapping cours, équipements cibles, décisions architecturales. & \texttt{PROJECT.md}, \texttt{EQUIPMENTS.md}, \texttt{GUIDE\_REDACTION.md}. \\
+  L1  & Cahier des charges : présent document.                                                  & \texttt{cdc.pdf} v1.0. \\
+  L2  & Squelette code : initialisation du dépôt Python, structure modulaire (Adapter, Parser, Mapper, Transport), Pydantic v2 pour les profils. & \texttt{src/bridge/}, tests unitaires de base. \\
+  L3  & Adapter Layer : 4 drivers (TCP MLLP, MQTT, file-watcher, série).                        & Code et tests d'intégration sur conteneurs simulateurs. \\
+  L4  & Parser Layer : 4 décodeurs (HL7 v2, JSON, SCP-ECG, MEDIBUS ASCII).                      & Code et jeux de données de test. \\
+  L5  & Mapper Layer : codification LOINC, génération FHIR R4 validée.                          & Code et bundles FHIR de référence. \\
+  L6  & Transport et persistance : client httpx, retry, fallback SQLite, schéma de persistance. & Code et tests de panne. \\
+  L7  & Dashboard : FastAPI et HTMX, statut couleur, alertes, configuration profils.            & Code et scénarios UX. \\
+  L8  & Mécanisme plugin : Plugin Manager, plugin exemple.                                      & Code et plugin de démo. \\
+  L9  & Conteneurisation : 4 simulateurs Docker, \texttt{docker-compose.yml}, image bridge, image HAPI. & \texttt{docker-compose.yml}, Dockerfiles. \\
+  L10 & Démo et pitch : préparation scénario, vidéo de secours, slides.                         & \texttt{pitch.pdf}, captures dashboard. \\
+  L11 & Rapport académique : rédaction des 7 chapitres.                                         & \texttt{rapport.pdf}. \\
+\end{longtable}
+
+\section{Jalons}
+\label{sec:jalons}
+
+Les jalons matérialisent les passages obligés. Un jalon n'est franchi qu'une fois ses conditions de passage vérifiées sur livrable.
+
+\bridgezebra
+\begin{longtable}{p{1.8cm}p{4.5cm}p{2.8cm}p{6cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Jalon} & {\color{white}\bfseries Intitulé} & {\color{white}\bfseries Date} & {\color{white}\bfseries Conditions de passage} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Jalon} & {\color{white}\bfseries Intitulé} & {\color{white}\bfseries Date} & {\color{white}\bfseries Conditions de passage} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  J0 & Cadrage validé          & 2026-05-04 & \texttt{PROJECT.md} et \texttt{EQUIPMENTS.md} écrits. \\
+  J1 & CDC v1.0 publié         & 2026-05-15 & \texttt{cdc.pdf} compile, sections 1 à 17 rédigées. \\
+  J2 & Squelette code prêt     & 2026-06-01 & Tests unitaires verts sur 3 modules. \\
+  J3 & Pipeline bout-en-bout   & 2026-07-15 & 1 trame du simulateur Philips publiée en FHIR sur HAPI. \\
+  J4 & Démo complète           & 2026-09-01 & 4 simulateurs traités, dashboard fonctionnel, plugin chargé. \\
+  J5 & Rapport rédigé          & 2026-12-15 & \texttt{rapport.pdf} v1.0. \\
+  J6 & Pitch prêt              & 2027-02-15 & \texttt{pitch.pdf} v1.0 et vidéo de secours. \\
+  J7 & Remise jury             & 2027-03-02 & 3 PDF déposés, démo répétée 3 fois. \\
+\end{longtable}
+
+\section{Gantt prévisionnel}
+\label{sec:gantt}
+
+Le diagramme suivant projette les lots sur la période mai 2026 à mars 2027. La grille est mensuelle. Les barres en bleu repèrent les lots techniques, les barres en sarcelle les groupes, et le losange rouge le jalon de remise.
+
+\begin{center}
+\begin{ganttchart}[
+  hgrid,
+  vgrid,
+  x unit=1.0cm,
+  y unit chart=0.55cm,
+  bar/.append style={fill=bridgeblue!60, draw=bridgeblue},
+  bar label font=\footnotesize\sffamily,
+  group/.append style={fill=bridgeteal, draw=bridgeteal},
+  group label font=\footnotesize\bfseries,
+  milestone/.append style={fill=bridgealert, draw=bridgealert},
+  title/.append style={fill=bridgeblue!10},
+  title label font=\footnotesize\bfseries,
+  title height=1
+]{1}{11}
+  \gantttitle{2026}{8} \gantttitle{2027}{3} \\
+  \gantttitlelist{5,...,12,1,2,3}{1} \\
+  \ganttgroup{Cadrage et CDC}{1}{2} \\
+  \ganttbar{L0 Cadrage}{1}{1} \\
+  \ganttbar{L1 CDC}{1}{2} \\
+  \ganttgroup{Implémentation}{2}{6} \\
+  \ganttbar{L2 Squelette}{2}{2} \\
+  \ganttbar{L3 Adapter}{3}{4} \\
+  \ganttbar{L4 Parser}{3}{4} \\
+  \ganttbar{L5 Mapper}{4}{5} \\
+  \ganttbar{L6 Transport}{5}{5} \\
+  \ganttbar{L7 Dashboard}{4}{6} \\
+  \ganttbar{L8 Plugins}{5}{6} \\
+  \ganttbar{L9 Docker}{6}{6} \\
+  \ganttgroup{Livrables}{7}{11} \\
+  \ganttbar{L10 Pitch}{9}{11} \\
+  \ganttbar{L11 Rapport}{7}{10} \\
+  \ganttmilestone{Remise}{11}
+\end{ganttchart}
+\end{center}
+
+\section{Méthodologie}
+\label{sec:methodologie}
+
+La cadence est fixée à des itérations courtes de deux semaines, avec une revue interne hebdomadaire entre l'auteur et l'encadrant. Le test continu sur conteneurs simulateurs vérifie en permanence la non-régression du pipeline. Aucune méthodologie agile formelle n'est imposée vu le profil solo, mais la régularité du rythme remplace la cérémonie. Chaque itération produit un incrément démontrable, ce qui permet de détecter tôt les écarts par rapport au plan.

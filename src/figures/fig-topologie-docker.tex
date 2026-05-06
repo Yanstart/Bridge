@@ -1,0 +1,141 @@
+% =====================================================================
+% figures/fig-topologie-docker.tex
+% Topologie Docker Compose : 4 simulateurs + bridge + HAPI + MQTT broker.
+% Layout en 4 niveaux verticaux : sims, bus mqtt+volume, bridge+dashboard, hapi
+% =====================================================================
+\begin{tikzpicture}[
+  font=\sffamily,
+  every node/.style={font=\small\sffamily},
+  >={Stealth[length=2.5mm]},
+  thick,
+  sim/.style={
+    rectangle, rounded corners=3pt,
+    draw=bridgealert, fill=bridgealert!10, text=bridgealert,
+    minimum width=2.6cm, minimum height=1.0cm,
+    align=center, font=\small\sffamily
+  },
+  bus/.style={
+    rectangle, rounded corners=3pt,
+    draw=bridgeteal, fill=bridgeteal!12, text=bridgeteal,
+    minimum width=2.6cm, minimum height=0.9cm,
+    align=center, font=\small\sffamily
+  },
+  vol/.style={
+    rectangle, rounded corners=3pt,
+    draw=bridgegray, dashed, fill=bridgegray!8,
+    minimum width=2.6cm, minimum height=0.9cm,
+    align=center, font=\small\sffamily, text=bridgegray
+  },
+  bridgecore/.style={
+    rectangle, rounded corners=4pt,
+    draw=bridgeblue, fill=bridgeblue!12, text=bridgeblue,
+    minimum width=6.6cm, minimum height=1.6cm,
+    align=center, font=\bfseries\sffamily
+  },
+  dashbox/.style={
+    rectangle, rounded corners=3pt,
+    draw=bridgeteal, fill=bridgeteal!15, text=bridgeteal,
+    minimum width=2.6cm, minimum height=1.6cm,
+    align=center, font=\small\bfseries\sffamily
+  },
+  hapi/.style={
+    rectangle, rounded corners=3pt,
+    draw=bridgegreen, fill=bridgegreen!15, text=bridgegreen,
+    minimum width=3.0cm, minimum height=1.0cm,
+    align=center, font=\bfseries\sffamily
+  },
+  protolbl/.style={
+    font=\scriptsize\itshape\sffamily, color=bridgegray, inner sep=1pt
+  },
+  flowarrow/.style={-{Stealth[length=3mm]}, thick, draw=bridgeblue!80}
+]
+
+% =====================================================================
+% Cadre du reseau Docker
+% =====================================================================
+\node[draw=bridgeblue, dashed, thick, fill=bridgesoft,
+      rounded corners=4pt,
+      minimum width=15.6cm, minimum height=10.0cm,
+      anchor=south west,
+      label={[anchor=north west, font=\footnotesize\bfseries,
+              color=bridgeblue, xshift=8pt, yshift=-6pt]
+              north west: Reseau Docker bridge-demo}]
+      (net) at (0, 0) {};
+
+% =====================================================================
+% Niveau 1 : 4 simulateurs alignes en haut
+% =====================================================================
+\node[sim] (sim1) at (2.4, 8.6) {sim-monitor\\Philips};
+\node[sim] (sim2) at (5.6, 8.6) {sim-glucometer\\Masimo};
+\node[sim] (sim3) at (8.8, 8.6) {sim-spirometer\\Welch Allyn};
+\node[sim] (sim4) at (12.0, 8.6) {sim-pump\\Drager};
+
+% Etiquettes de protocole sous chaque sim, sans chevaucher
+\node[protolbl] at (2.4, 7.85) {TCP HL7v2};
+\node[protolbl] at (5.6, 7.85) {MQTT JSON};
+\node[protolbl] at (8.8, 7.85) {fichier XML};
+\node[protolbl] at (12.0, 7.85) {RS-232};
+
+% =====================================================================
+% Niveau 2 : Bus MQTT et volume partage
+% =====================================================================
+\node[bus] (mqtt) at (5.6, 6.3) {MQTT broker\\eclipse-mosquitto};
+\node[vol] (vol)  at (8.8, 6.3) {Volume \texttt{drop/}};
+
+% =====================================================================
+% Niveau 3 : Bridge core (centre) et Dashboard (droite)
+% =====================================================================
+\node[bridgecore] (bridge) at (5.6, 4.0) {IoT Edge Bridge\\Python + FastAPI};
+\node[font=\scriptsize\itshape, color=bridgegray, anchor=north]
+  at (5.6, 3.4) {Adapter . Parser . Mapper . Transport};
+
+\node[dashbox] (dashb) at (12.0, 4.0) {Dashboard\\:8080};
+
+% =====================================================================
+% Niveau 4 : HAPI FHIR Server
+% =====================================================================
+\node[hapi] (hapi) at (5.6, 1.4) {HAPI FHIR Server\\:8081};
+
+% =====================================================================
+% Acteur exterieur (auteur)
+% =====================================================================
+\node[anchor=west, font=\footnotesize\itshape, color=bridgegray]
+  (user) at (16.0, 4.0) {Auteur};
+
+% =====================================================================
+% Fleches : simulateurs vers leurs cibles
+% =====================================================================
+% sim1 (TCP) directement vers Bridge
+\draw[flowarrow] (sim1.south) -- ++(0, -0.3)
+                 -| ([xshift=-2.0cm]bridge.north);
+
+% sim2 (MQTT) vers MQTT broker
+\draw[flowarrow] (sim2.south) -- (mqtt.north);
+
+% sim3 (fichier) vers volume
+\draw[flowarrow] (sim3.south) -- (vol.north);
+
+% sim4 (RS-232) directement vers Bridge
+\draw[flowarrow] (sim4.south) -- ++(0, -0.3)
+                 -| ([xshift=2.0cm]bridge.north);
+
+% MQTT et volume vers Bridge
+\draw[flowarrow] (mqtt.south)  -- ([xshift=-0.7cm]bridge.north);
+\draw[flowarrow] (vol.south)   -- ([xshift=0.7cm]bridge.north);
+
+% Bridge vers HAPI
+\draw[flowarrow] (bridge.south) -- (hapi.north)
+  node[midway, right=2pt, font=\scriptsize\itshape, color=bridgegray] {POST FHIR};
+
+% Bridge vers Dashboard
+\draw[flowarrow] (bridge.east) -- (dashb.west)
+  node[midway, above, font=\scriptsize\itshape, color=bridgegray] {WebSocket};
+
+% =====================================================================
+% Acces auteur vers Dashboard (en pointille, hors reseau Docker)
+% =====================================================================
+\draw[->, dashed, thick, color=bridgegray]
+  (user.west) -- (dashb.east)
+  node[midway, above, font=\scriptsize\itshape, color=bridgegray] {HTTP};
+
+\end{tikzpicture}

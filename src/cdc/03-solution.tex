@@ -1,0 +1,100 @@
+\chapter{Solution proposée}
+\label{ch:solution}
+
+\section{Vision produit}
+\label{sec:vision-produit}
+
+La passerelle est un middleware configurable. Elle ne décide pas a priori des dispositifs supportés. Elle expose une mécanique de plug-in qui permet de déclarer, en JSON, comment interpréter une nouvelle source. La philosophie produit se résume en trois questions et deux phases.
+
+\begin{table}[h]
+  \centering
+  \caption{Philosophie produit : trois questions, deux phases.}
+  \label{tab:philosophie}
+  \begin{tabularx}{\linewidth}{lXl}
+    \toprule
+    \bridgeheader Phase & Question & Responsable \\
+    \midrule
+    Handshake technique & Q1. Quel canal de communication ? (TCP, RS-232, BLE, fichier, MQTT) & Développeur \\
+    Handshake technique & Q2. Quelle langue ? (HL7v2, JSON, XML, ASCII MEDIBUS) & Développeur \\
+    Configuration métier & Q3. Quelle cible et quel mapping ? (HAPI FHIR, codes LOINC, identité patient) & Admin via dashboard \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Les deux premières questions sont résolues par le développeur via un profil JSON livré avec la passerelle. La troisième est exposée à l'administrateur via le dashboard. Cette séparation est un principe directeur du produit.
+
+\section{Cas d'usage prioritaires}
+\label{sec:use-cases}
+
+Six cas d'usage cadrent la démo.
+
+\begin{table}[h]
+  \centering
+  \caption{Use cases couverts par la démo.}
+  \label{tab:use-cases}
+  \begin{tabularx}{\linewidth}{llX}
+    \toprule
+    \bridgeheader ID & Acteur & Description \\
+    \midrule
+    UC1 & Moniteur Philips MX450 & Capter une trame HL7 v2 ORU\textasciicircum{}R01 over MLLP, extraire SpO\textsubscript{2} et FC, publier en FHIR sur HAPI. \\
+    UC2 & Glucomètre Masimo Radical-7 & Recevoir un message MQTT JSON, mapper la glycémie en LOINC 2339-0, publier en FHIR. \\
+    UC3 & ECG Welch Allyn CP150 & Détecter un fichier SCP-ECG déposé dans un volume, parser, publier une étude ECG (LOINC 11524-6). \\
+    UC4 & Pompe Dräger Evita V500 & Lire une trame ASCII MEDIBUS sur RS-232 simulé, mapper FiO\textsubscript{2}, PEEP, Vt, publier en FHIR. \\
+    UC5 & Auteur du plugin & Ajouter un nouveau dispositif en déposant un plugin sans redémarrage du cœur. \\
+    UC6 & Technicien biomédical & Recevoir une alerte mail technique sur valeur hors plage de plausibilité, sans donnée patient. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Architecture cible : quatre vues}
+\label{sec:architecture-cible}
+
+L'architecture est documentée selon les quatre vues classiques de la pyramide d'architecture.
+
+\subsection{Vue métier}
+
+La passerelle sert deux objectifs métier. Côté clinique, elle alimente le DPI en données vitales fiables et horodatées, support à la décision soignante. Côté OT, elle donne aux techniciens biomédicaux une vision temps réel du parc connecté, sans accès aux données cliniques.
+
+\subsection{Vue fonctionnelle}
+
+La chaîne de traitement est linéaire : capture, parsing, mapping sémantique, transport sécurisé, publication. Chaque étape est un point d'extension.
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/fig-pipeline-4couches.tex}}
+  \caption{Pipeline fonctionnel à 4 couches, avec annotations des formats à chaque interface et zone d'extension par plugins.}
+  \label{fig:vue-fonctionnelle}
+\end{figure}
+
+\subsection{Vue applicative}
+
+Six composants logiciels constituent la solution.
+
+\begin{table}[h]
+  \centering
+  \caption{Composants applicatifs.}
+  \label{tab:composants-app}
+  \begin{tabularx}{\linewidth}{lX}
+    \toprule
+    \bridgeheader Composant & Responsabilité \\
+    \midrule
+    Adapter Layer & Drivers d'entrée par canal (TCP, MQTT, file-watcher, série). \\
+    Parser Layer & Décodage des trames et fichiers selon un profil JSON par dispositif. \\
+    Mapper Layer & Codification LOINC et construction de ressources FHIR R4. \\
+    Transport Layer & Émission vers HAPI avec retry, fallback SQLite, mTLS optionnel. \\
+    Dashboard & Configuration des profils et supervision OT (FastAPI + HTMX). \\
+    Plugin Manager & Chargement, validation et hot-reload des plugins déposés dans \texttt{plugins/}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Vue technique}
+
+L'environnement d'exécution est un poste local avec Docker Compose. Six services tournent en réseau interne : quatre simulateurs, le cœur Python, le serveur HAPI FHIR. Le dashboard est exposé sur \texttt{localhost:8080}. Aucun accès Internet n'est requis pendant la démo.
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/fig-topologie-docker.tex}}
+  \caption{Vue technique : topologie Docker Compose de la démo, 4 simulateurs + bridge + HAPI FHIR + MQTT broker.}
+  \label{fig:vue-technique}
+\end{figure}

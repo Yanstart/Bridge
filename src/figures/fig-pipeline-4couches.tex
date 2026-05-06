@@ -1,0 +1,117 @@
+% =====================================================================
+% figures/fig-pipeline-4couches.tex
+% Pipeline fonctionnel : Adapter -> Parser -> Mapper -> Transport -> HAPI
+% Inputs varies a gauche, sortie FHIR a droite. Bandeau plugins au-dessus.
+% =====================================================================
+\begin{tikzpicture}[
+  font=\sffamily,
+  every node/.style={font=\small\sffamily},
+  >={Stealth[length=2.5mm]},
+  thick,
+  layer/.style={
+    rectangle, rounded corners=3pt,
+    draw=bridgeblue, fill=bridgeblue!10, text=bridgeblue,
+    minimum width=2.4cm, minimum height=4.2cm,
+    align=center,
+    font=\small\bfseries\sffamily
+  },
+  altlayer/.style={
+    rectangle, rounded corners=3pt,
+    draw=bridgeteal, fill=bridgeteal!10, text=bridgeteal,
+    minimum width=2.4cm, minimum height=4.2cm,
+    align=center,
+    font=\small\bfseries\sffamily
+  },
+  outbox/.style={
+    rectangle, rounded corners=3pt,
+    draw=bridgegreen, fill=bridgegreen!15, text=bridgegreen,
+    minimum width=2.0cm, minimum height=1.0cm,
+    align=center,
+    font=\small\bfseries\sffamily
+  },
+  inputlbl/.style={
+    anchor=east, color=bridgegray,
+    font=\footnotesize\itshape\sffamily,
+    inner sep=2pt
+  },
+  caption/.style={
+    align=center, font=\scriptsize\itshape\sffamily,
+    color=bridgegray, inner sep=1pt
+  },
+  flowarrow/.style={-{Stealth[length=3mm]}, thick, draw=bridgeblue}
+]
+
+% =====================================================================
+% Etiquettes des entrees (a gauche)
+% =====================================================================
+\node[inputlbl] (lblTcp) at (-0.2, 4.5) {TCP / HL7v2};
+\node[inputlbl] (lblBle) at (-0.2, 3.7) {BLE / MQTT};
+\node[inputlbl] (lblFil) at (-0.2, 2.9) {Fichier XML};
+\node[inputlbl] (lblRs)  at (-0.2, 2.1) {RS-232};
+
+% =====================================================================
+% Couche 1 : Adapter (teal pour distinguer la frontiere d'entree)
+% =====================================================================
+\node[altlayer] (adapter) at (1.4, 3.3) {Adapter\\Layer};
+
+% Fleches d'entree
+\draw[flowarrow] (lblTcp.east) -- (adapter.west |- lblTcp.east);
+\draw[flowarrow] (lblBle.east) -- (adapter.west |- lblBle.east);
+\draw[flowarrow] (lblFil.east) -- (adapter.west |- lblFil.east);
+\draw[flowarrow] (lblRs.east)  -- (adapter.west |- lblRs.east);
+
+% =====================================================================
+% Couche 2 : Parser
+% =====================================================================
+\node[layer] (parser) at (4.6, 3.3) {Parser\\Layer};
+\draw[flowarrow] (adapter.east) -- (parser.west)
+  node[midway, above, font=\scriptsize\itshape, color=bridgegray, yshift=2pt]
+    {trame brute};
+
+% =====================================================================
+% Couche 3 : Mapper
+% =====================================================================
+\node[layer] (mapper) at (7.8, 3.3) {Mapper\\Layer};
+\draw[flowarrow] (parser.east) -- (mapper.west)
+  node[midway, above, font=\scriptsize\itshape, color=bridgegray, yshift=2pt]
+    {objet};
+
+% =====================================================================
+% Couche 4 : Transport
+% =====================================================================
+\node[altlayer] (transp) at (11.0, 3.3) {Transport\\Layer};
+\draw[flowarrow] (mapper.east) -- (transp.west)
+  node[midway, above, font=\scriptsize\itshape, color=bridgegray, yshift=2pt]
+    {FHIR};
+
+% =====================================================================
+% Sortie HAPI
+% =====================================================================
+\node[outbox] (hapi) at (13.9, 3.3) {HAPI FHIR};
+\draw[flowarrow] (transp.east) -- (hapi.west)
+  node[midway, above, font=\scriptsize\itshape, color=bridgegray, yshift=2pt]
+    {mTLS};
+
+% =====================================================================
+% Annotations en bas (bien sous chaque couche, espace suffisant)
+% =====================================================================
+\node[caption] at (1.4, 0.7) {drivers\\d'entree};
+\node[caption] at (4.6, 0.7) {profils JSON\\decodage};
+\node[caption] at (7.8, 0.7) {LOINC\\Observation FHIR};
+\node[caption] at (11.0, 0.7) {retry, fallback\\file SQLite};
+
+% =====================================================================
+% Bandeau plugins (au-dessus, couvrant les 3 couches extensibles)
+% =====================================================================
+\node[draw=bridgegray, dashed, fill=bridgegray!8, rounded corners=2pt,
+      minimum width=8.4cm, minimum height=0.7cm,
+      anchor=south, font=\scriptsize\itshape\sffamily, color=bridgegray]
+  at (4.6, 6.0)
+  {Plugins communautaires : extensions Adapter, Parser, Mapper};
+
+% Petites fleches verticales du bandeau vers les 3 couches
+\foreach \x in {1.4, 4.6, 7.8} {
+  \draw[->, dashed, color=bridgegray, thin] (\x, 5.95) -- (\x, 5.45);
+}
+
+\end{tikzpicture}

@@ -1,0 +1,109 @@
+% =====================================================================
+% Chapitre 2 : Applications mobiles et plateformes de sante connectee
+% =====================================================================
+\chapter{Applications mobiles et plateformes de santé connectée}
+\label{ch:architecture-applicative}
+
+Ce chapitre positionne la passerelle dans la pyramide d'architecture du SI hospitalier, identifie le DPI comme cible, situe le traitement sur le continuum DIKW et précise le rôle du dashboard.
+
+\section{Processus métier global}
+\label{sec:processus-metier}
+
+Le diagramme suivant résume le processus métier que la passerelle automatise. Une source (dispositif IoT ou logiciel Legacy) émet des données, le bridge les capture, les normalise et les valide, le DPI les persiste, et le soignant les consulte ensuite via son interface habituelle.
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/fig-processus-metier.tex}}
+  \caption{Processus métier : de la source Legacy à la consultation clinique.}
+  \label{fig:rapport-processus-metier}
+\end{figure}
+
+\section{Pyramide d'architecture des systèmes d'information}
+\label{sec:pyramide}
+
+\begin{table}[h]
+  \centering
+  \caption{Pyramide d'architecture appliquée à la passerelle.}
+  \label{tab:pyramide}
+  \bridgezebra
+  \begin{tabular}{p{2.4cm} p{5.6cm} p{6.0cm}}
+    \toprule
+    \bridgeheader Niveau & Préoccupations & Position de la passerelle \\
+    \midrule
+    Métier & Vision, valeur clinique, finalité de soin & Améliore la continuité et la complétude des données du patient \\
+    Fonctionnel & Processus métiers (urgences, hospitalisation, bloc) & Automatise la capture des observations vers le DPI \\
+    Applicatif & Logiciels DPI, PACS, LIS, RIS & Middleware entre les dispositifs et le DPI hospitalier \\
+    Technique & Serveurs, réseau, dispositifs physiques & Gateway edge Python exécutée sur poste local hospitalier \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+La passerelle agit principalement au niveau applicatif. Elle s'appuie sur le niveau technique (port série, BLE, TCP, fichier) et sert le niveau fonctionnel en supprimant la saisie manuelle. Sa contribution au métier est indirecte mais réelle : un dossier plus complet améliore la décision clinique. Dans la chaîne canonique \emph{capteur, microcontrôleur, communication, application, actionneur}, notre passerelle se substitue au maillon \emph{application} (cf. figure~\ref{fig:rapport-chaine-capteur} au chapitre~\ref{ch:reseau}).
+
+\section{Le DPI hospitalier : cible de notre passerelle}
+\label{sec:dpi}
+
+Le DPI est le point de convergence de toutes les données cliniques. Le KCE le structure autour de huit fonctionnalités : collecte, partage, sécurité d'accès, interopérabilité externe, aide à la décision, prescriptions, suivi longitudinal, portail patient \cite{kce_362_dpi}. Le principe \emph{only once} (saisie unique à la source) gouverne sa conception. Trois éditeurs structurent le marché belge : Omnipro, H+, Xcare. Tous exposent désormais une API FHIR locale, conforme au Plan eSanté 2025-2027 \cite{plan_esante_2025_2027}. La passerelle alimente cette API : flux dispositifs transformés en \texttt{Observation} liées au \texttt{Patient} et au \texttt{Device}. En démonstration, un serveur HAPI FHIR local simule cette interface.
+
+\section{Continuum d'intelligence des données}
+\label{sec:dikw}
+
+Le modèle DIKW (Données, Information, Connaissance, Sagesse) décrit la chaîne d'une mesure brute vers une décision. La passerelle opère sur les deux premiers maillons.
+
+\begin{table}[h]
+  \centering
+  \caption{Continuum DIKW illustré sur la passerelle.}
+  \label{tab:dikw}
+  \bridgezebra
+  \begin{tabular}{p{3.8cm} p{10.0cm}}
+    \toprule
+    \bridgeheader Niveau DIKW & Illustration projet \\
+    \midrule
+    Donnée brute & Trame RS-232 ASCII \texttt{0x32 0x35 0x6D ...} émise par le moniteur Philips \\
+    Information & SpO2 = 96\% à 14:23 sur le lit 12, dispositif Philips MX450 \\
+    Connaissance & SpO2 stable sur 24 heures, dans la plage de plausibilité 50 à 100\% \\
+    Décision clinique & Pas d'alerte, suivi standard. Hors-scope passerelle, opéré par le clinicien sur le DPI \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Cette frontière est volontaire. La passerelle ne juge pas la gravité d'une mesure et n'émet pas d'alerte. Elle sépare la responsabilité du fabricant (justesse de la mesure), celle de l'éditeur (justesse du mapping) et celle du clinicien (interprétation).
+
+\section{Algorithmes et paradigmes mobilisés}
+\label{sec:algorithmes}
+
+La passerelle est déterministe. Le parsing applique un automate à états finis sur les trames série, le mapping applique des règles déclaratives lues depuis des profils JSON, le transport applique retry et buffering. Aucun modèle d'apprentissage n'est embarqué dans la démonstration. Cette simplicité facilite validation, traçabilité et reproductibilité. L'IA en bord (détection d'anomalies, pré-flagging) figure en roadmap F2 du cahier des charges.
+
+\section{Interface de supervision OT}
+\label{sec:dashboard}
+
+La passerelle expose un dashboard FastAPI + HTMX destiné aux techniciens biomédicaux et aux équipes IT. Il remplit deux fonctions : configuration des profils JSON par équipement (canal, langue, mapping de sortie) et supervision OT (statut couleur, horodatage de dernière communication, nombre de messages, contexte technique en cas d'anomalie). Les notifications mail respectent un format strict (identifiant équipement, type d'erreur, horodatage, contexte technique) sans aucun paramètre clinique.
+
+\begin{bridgekey}[Principe de minimisation]
+Le dashboard regarde les flux, pas le contenu clinique. Les valeurs vitales transitent vers le DPI sans s'arrêter dans le tableau de bord. Les techniciens biomédicaux et OT voient \emph{que} les flux circulent, jamais \emph{ce qui} circule. Cette règle préserve la confidentialité patient et clarifie la mission OT du middleware.
+\end{bridgekey}
+
+\section{Écosystème applicatif belge environnant}
+\label{sec:ecosysteme-belge}
+
+La passerelle alimente le DPI, qui s'inscrit dans un écosystème applicatif belge plus large. Cinq briques transversales structurent cet écosystème.
+
+\begin{table}[h]
+  \centering
+  \caption{Briques applicatives belges et leur position vis-à-vis de la passerelle.}
+  \label{tab:ecosysteme-be}
+  \bridgezebra
+  \begin{tabular}{p{3.0cm} p{11.5cm}}
+    \toprule
+    \bridgeheader Brique & Rôle et lien avec la passerelle \\
+    \midrule
+    Bingli & Chatbot d'anamnèse en amont du DPI, indépendant du flux passerelle \\
+    Recip-e & E-prescription, alimentée par le DPI, hors-scope passerelle \\
+    eHealthBox & Boîte chiffrée pour échanges inter-praticiens, alimentée par le DPI \\
+    Sumehr & Résumé patient partageable via le RSW, alimenté par le DPI \\
+    MyCareNet & Plateforme INAMI pour la facturation, hors-scope passerelle \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+La passerelle se positionne en amont du DPI : elle alimente la couche transactionnelle. Les briques transversales s'appuient ensuite sur la complétude du DPI pour leurs propres traitements.

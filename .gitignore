@@ -1,0 +1,73 @@
+# =====================================================================
+# .gitignore - Projet IoT Edge Bridge
+# =====================================================================
+
+# --- LaTeX auxiliaires ----------------------------------------------
+*.aux
+*.bbl
+*.bbl-SAVE-ERROR
+*.bcf
+*.bcf-SAVE-ERROR
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.lof
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.toc
+*.synctex.gz
+*.glo
+*.glsdefs
+*.acn
+*.acr
+*.alg
+*.ist
+*.gls
+*.glg
+*.xdy
+*.xdv
+*.vrb
+latexmk/
+
+# --- PDFs intermediaires dans src/ (les livrables sont dans pdf/) ---
+src/rapport.pdf
+src/pitch.pdf
+src/cdc.pdf
+
+# --- Cache et editeurs ----------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+
+# --- Configuration locale Claude Code (pas partagee) -----------------
+.claude/
+
+# --- Python (pour la demo Docker a venir) ---------------------------
+demo/**/__pycache__/
+demo/**/*.pyc
+demo/**/.venv/
+demo/**/venv/
+demo/**/*.egg-info/
+demo/**/.pytest_cache/
+demo/**/.mypy_cache/
+demo/**/.ruff_cache/
+
+# --- Docker -----------------------------------------------------------
+demo/**/.env
+
+# --- Volumes runtime de la demo --------------------------------------
+# On garde la structure (.gitkeep) et la config (mosquitto.conf), on
+# exclut tout le contenu produit a l'execution.
+demo/volumes/data/*
+!demo/volumes/data/.gitkeep
+demo/volumes/drop/*
+!demo/volumes/drop/.gitkeep
+demo/volumes/mosquitto/data/*
+!demo/volumes/mosquitto/data/.gitkeep

@@ -1,0 +1,92 @@
+% =====================================================================
+% Chapitre 5 : Capteurs et dispositifs de mesure en e-health
+% =====================================================================
+\chapter{Capteurs et dispositifs de mesure en e-health}
+\label{ch:capteurs}
+
+Ce chapitre typologise les capteurs par grandeur physique, présente les quatre équipements de référence et détaille les méthodes de capture passive qui préservent le marquage CE.
+
+\section{Définition canonique du capteur}
+\label{sec:def-capteur}
+
+Un capteur transforme une grandeur physique en signal électrique exploitable. La chaîne de mesure type comporte cinq maillons : capteur, microcontrôleur (conditionnement, numérisation), module de communication, application, actionneur. La passerelle se branche au point de communication, jamais au capteur. Elle n'altère ni le conditionnement analogique ni le traitement numérique embarqué, ce qui préserve la conformité MDR du dispositif source.
+
+\section{Typologie par grandeur physique}
+\label{sec:typologie}
+
+\begin{table}[h]
+  \centering
+  \caption{Familles de capteurs, grandeurs mesurées et exemples du projet.}
+  \label{tab:typologie-capteurs}
+  \bridgezebra
+  \begin{tabular}{p{3.5cm} p{5.0cm} p{6.0cm}}
+    \toprule
+    \bridgeheader Famille & Grandeur mesurée & Exemples projet \\
+    \midrule
+    Optique & Saturation O2 par photopléthysmographie & Oxymètre Masimo Radical-7 \\
+    Électrique (biopotentiel) & ECG, fréquence cardiaque & Moniteur Philips IntelliVue, ECG Welch Allyn CP150 \\
+    Pression & Pression artérielle oscillométrique, PEEP & Moniteur Philips, ventilateur Dräger \\
+    Mécanique & Volumes respiratoires & Spiromètre Vyaire MicroLab \\
+    Chimique (point of care) & Glycémie, gaz du sang & Glucomètre Roche Accu-Chek \\
+    Température & Température cutanée ou interne & Thermomètres connectés (perspective) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Équipements de référence retenus pour la démonstration}
+\label{sec:equipements-demo}
+
+Quatre équipements ont été sélectionnés, représentatifs des canaux d'entrée et bénéficiant d'une documentation publique solide. Détails techniques dans \texttt{EQUIPMENTS.md}.
+
+\begin{table}[h]
+  \centering
+  \caption{Équipements de référence et cibles LOINC associées.}
+  \label{tab:equipements-demo}
+  \bridgezebra
+  \begin{tabular}{p{3.5cm} p{3.0cm} p{3.5cm} p{4.0cm}}
+    \toprule
+    \bridgeheader Équipement & Famille & Sortie native & Cible LOINC \\
+    \midrule
+    Philips IntelliVue MX450 & Moniteur multiparamétrique & HL7 v2 ORU\textasciicircum{}R01 over MLLP & SpO2 (59408-5), FC (8867-4), PA (8480-6, 8462-4) \\
+    Masimo Radical-7 & Oxymètre point of care & JSON via BLE simulé MQTT & SpO2 (59408-5), FC (8867-4) \\
+    Welch Allyn CP150 & ECG 12 dérivations & Fichier SCP-ECG ISO 11073-91064 & Étude ECG (11524-6) \\
+    Dräger Evita V500 & Ventilateur & ASCII MEDIBUS sur RS-232 & FiO2 (19994-3), PEEP (20077-4) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Documentation constructeur exploitable : Philips IntelliVue MX450 et IntelliVue Information Center iX \cite{philips_piic_ix}, Masimo Radical-7 manuel opérateur \cite{masimo_radical7_manual}, Welch Allyn CP150 notice et manuel de service \cite{welchallyn_cp150_dfu}, Dräger Evita V500 protocole MEDIBUS (ASCII, trame STX/ETX) \cite{draeger_medibus_protocol}.
+
+\section{Méthodes de capture sans intrusion matérielle}
+\label{sec:capture-non-intrusive}
+
+\begin{table}[h]
+  \centering
+  \caption{Méthodes de capture passive employées dans la démonstration.}
+  \label{tab:capture-non-intrusive}
+  \bridgezebra
+  \begin{tabular}{p{4.0cm} p{10.5cm}}
+    \toprule
+    \bridgeheader Méthode & Description \\
+    \midrule
+    Capture passive sur port série & Lecture seule en pseudo-tty ou null-modem. Aucune modification du dispositif. Aucune perte du marquage CE. Notre cas pour Dräger. \\
+    Tap réseau passif & SPAN ou TAP sur le commutateur. Lecture des trames TCP émises par le dispositif. Notre cas pour Philips et Masimo. \\
+    Lecture de fichiers exportés & Surveillance d'un dossier où le dispositif dépose ses CSV ou XML. Notre cas pour Welch Allyn. \\
+    OCR sur écran & Capture d'écran traitée par un modèle de reconnaissance. Recours ultime, fiabilité limitée. Hors-scope démonstration. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{bridgekey}[Principe de non-intrusion]
+Aucune méthode retenue ne modifie le dispositif. Le marquage CE reste valide. Le dispositif ne sait pas qu'il est observé. Cette posture est le fondement réglementaire de la passerelle au regard du règlement MDR \cite{mdr_2017_745}.
+\end{bridgekey}
+
+\section{Capteurs émergents et perspectives IA}
+\label{sec:capteurs-emergents}
+
+De nouveaux capteurs intègrent une couche d'analyse en bord : analyse de frappe clavier (détection précoce de troubles cognitifs), vision par ordinateur sur caméra de chambre (détection automatique de chute). Notre roadmap F2 prévoit une couche d'anomaly detection en bord qui pré-flagge les valeurs aberrantes avant transmission.
+
+\section{Boucle vers le DPI}
+\label{sec:boucle-dpi}
+
+Tout résultat issu d'un dispositif médical remonte au DPI. Une fois mappée en FHIR R4 et publiée vers le serveur cible, la donnée est consultée par le clinicien via le DPI ou par le patient via MaSanté. La passerelle disparaît derrière la valeur clinique livrée, effet attendu d'un middleware réussi.

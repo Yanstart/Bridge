@@ -1,0 +1,60 @@
+\chapter{Contexte et enjeux}
+\label{ch:contexte}
+
+\section{Vision : du chaos à l'ordre interopérable}
+\label{sec:vision}
+
+Le parc hospitalier belge accumule des dispositifs médicaux acquis sur des cycles de quinze à vingt ans. Ces équipements émettent dans des protocoles hétérogènes : trames RS-232 propriétaires, fichiers XML batch, BLE legacy, HL7 v2 over MLLP, JSON ad hoc. À gauche du système d'information, c'est le chaos. À droite, le \gls{BIHR} attend des ressources \gls{FHIR} R4 codées en LOINC. Le projet IoT Edge Bridge installe un middleware configurable au milieu de ce flux. Il absorbe l'hétérogénéité côté équipement et publie un format standard côté plateforme.
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/fig-chaos-ordre.tex}}
+  \caption{Vision narrative : du chaos des dispositifs au continuum BIHR.}
+  \label{fig:vision-chaos-ordre}
+\end{figure}
+
+\section{Contexte métier}
+\label{sec:contexte-metier}
+
+\subsection{Stratégie nationale}
+
+Le Plan d'action interfédéral eSanté 2025-2027 érige le \gls{BIHR} en colonne vertébrale du dossier patient partagé belge \cite{plan_esante_2025_2027}. L'\gls{INAMI} est responsable de son déploiement opérationnel \cite{bihr_overview}. La passerelle se positionne comme une brique d'exécution de cette stratégie nationale : elle fait remonter dans le BIHR des données aujourd'hui captives des équipements.
+
+\subsection{Problème legacy}
+
+Le \gls{MDR} 2017/745 \cite{mdr_2017_745} verrouille la modification d'un dispositif médical certifié. Toute intervention sur le firmware ou le câblage interne d'un moniteur, d'une pompe ou d'un ventilateur fait perdre le marquage CE. Or les équipements en service ont une durée de vie de quinze à vingt ans. Remplacer le parc est économiquement insoutenable. La solution doit donc capter les sorties existantes sans toucher au dispositif.
+
+Trois constats résument la situation belge.
+
+\begin{enumerate}
+  \item La majorité des établissements échantillonnés ne dispose pas d'une intégration automatisée des dispositifs médicaux au \gls{DPI}.
+  \item Les saisies manuelles génèrent des erreurs et chronophagent les soignants.
+  \item Les données restent captives des équipements, ce qui empêche la continuité du parcours de soin.
+\end{enumerate}
+
+\subsection{Bénéficiaires}
+
+Quatre types de bénéficiaires sont concernés : le patient (dossier complet et fiable), le soignant (aide à la décision sur données horodatées), le technicien biomédical (supervision OT du parc) et l'institution (conformité au plan eSanté).
+
+\section{Objectifs SMART de la démo}
+\label{sec:objectifs-demo}
+
+La démo livrée pendant le pitch matérialise quatre objectifs mesurables.
+
+\begin{table}[h]
+  \centering
+  \caption{Objectifs SMART de la démo IoT Edge Bridge.}
+  \label{tab:objectifs-smart}
+  \begin{tabularx}{\linewidth}{lXl}
+    \toprule
+    \bridgeheader ID & Objectif & Mesure \\
+    \midrule
+    OBJ-01 & Démontrer la capture de quatre canaux d'entrée hétérogènes par le même cœur logiciel & 4 conteneurs simulateurs traités en parallèle \\
+    OBJ-02 & Publier des ressources FHIR R4 valides sur un serveur HAPI local & Bundle accepté avec HTTP 201 \\
+    OBJ-03 & Montrer la configurabilité par fichier JSON sans modification du code cœur & Ajout d'un cinquième dispositif via dépôt d'un plugin \\
+    OBJ-04 & Tenir une démo live de 5 minutes sans intervention manuelle & Aucune action clavier requise après \texttt{docker compose up} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Ces objectifs cadrent l'effort d'implémentation. Ils sont déclinés en exigences au chapitre~\ref{ch:exigences-fonctionnelles}.

@@ -1,0 +1,201 @@
+\chapter{Architecture technique}
+\label{ch:architecture-technique}
+
+Ce chapitre détaille la mise en \oe uvre technique de la solution. Il complète la vue d'ensemble présentée au chapitre~\ref{ch:solution} (cf. section~\ref{sec:architecture-cible}). Il sert de spécification pour l'implémentation de la démo.
+
+\section{Schéma global et flux de données}
+\label{sec:archi-schema-global}
+
+La topologie Docker Compose retenue pour la démo est représentée en figure~\ref{fig:vue-technique}. Le pipeline fonctionnel à quatre couches est représenté en figure~\ref{fig:vue-fonctionnelle}. Ces deux schémas constituent le socle de référence pour l'ensemble du chapitre.
+
+Le flux nominal se déroule en six étapes. L'Adapter ouvre le canal d'entrée et capture une trame brute. La trame est mise en file de traitement Python asyncio. Le Parser applique le profil JSON associé et produit un objet normalisé. Le Mapper construit un Bundle FHIR R4 codé LOINC. Le Transport pousse le Bundle vers HAPI via httpx. L'ACK applicatif renvoyé par HAPI est persisté en SQLite avec son Resource ID.
+
+Le flux d'erreur active des mécanismes distincts par couche. Un parse échoué bascule le message en file de quarantaine et passe l'équipement en orange. Un échec de transport déclenche un retry exponentiel à 1\,s, 4\,s puis 16\,s. Au-delà, le Bundle est persisté chiffré dans la file de repli SQLite. Toute transition orange ou rouge déclenche une alerte mail technique vers le technicien biomédical, sans donnée patient.
+
+\section{Composants logiciels}
+\label{sec:archi-composants}
+
+Le middleware se décompose en neuf composants logiciels. Chacun expose une responsabilité unique et une interface stable. Cette modularité conditionne la testabilité et la capacité à charger des plugins externes.
+
+\bridgezebra
+\begin{longtable}{p{3.5cm}p{11cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Composant} & {\color{white}\bfseries Responsabilités détaillées} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Composant} & {\color{white}\bfseries Responsabilités détaillées} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Adapter Layer & Drivers d'entrée par canal : TCP MLLP, client MQTT, file-watcher, port série pyserial. Un driver par canal, chargeable comme plugin. Reconnexion automatique avec backoff. \\
+  Parser Layer & Décodeurs HL7 v2 (hl7apy), JSON, XML, ASCII MEDIBUS, SCP-ECG. Sélection du décodeur à partir du profil JSON. Conversion d'unités, horodatage UTC, file de quarantaine sur erreur de format. \\
+  Mapper Layer & Codification LOINC, génération des ressources Observation, Device et DeviceMetric. Validation contre le profil FHIR R4 avant émission. Résolution de l'identité patient via table simulée. \\
+  Transport Layer & Client httpx async, retry tenacity exponentiel, fallback SQLite WAL chiffrée Fernet, mTLS configurable par variable d'environnement. \\
+  Profile Loader & Chargement et hot-reload des profils JSON déposés dans \texttt{profiles/}. Validation Pydantic v2 du schéma de profil à l'amorçage et à chaque modification détectée. \\
+  Plugin Manager & Scan du répertoire \texttt{plugins/}, chargement isolé des paquets, validation du manifeste \texttt{plugin.toml}, hot-reload via watchdog, isolation des exceptions par plugin. \\
+  Dashboard & FastAPI plus Jinja2 plus HTMX. WebSocket pour push d'événements OT. Pages CRUD profils, supervision, anomalies. Aucune valeur clinique exposée. \\
+  Persistence & SQLite en mode WAL, schéma normalisé pour statut de transmission, file de repli chiffrée, profils, plugins. Pas de migration Alembic en démo. \\
+  Logger & structlog avec processeur JSON, événements horodatés UTC, niveau configurable, pas de donnée patient en log. \\
+\end{longtable}
+
+\section{Stack technique confirmée}
+\label{sec:archi-stack}
+
+La pile retenue privilégie Python pour son écosystème mûr en santé numérique, et Docker Compose pour la reproductibilité de la démo. Toutes les versions ci-dessous sont des planchers mesurés à la rédaction du CDC.
+
+\bridgezebra
+\begin{longtable}{p{3cm}p{4cm}p{2cm}p{6cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Couche} & {\color{white}\bfseries Technologie} & {\color{white}\bfseries Version} & {\color{white}\bfseries Justification} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Couche} & {\color{white}\bfseries Technologie} & {\color{white}\bfseries Version} & {\color{white}\bfseries Justification} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Langage & Python & 3.11+ & async/await natif, écosystème mûr FHIR et MQTT \\
+  Web framework & FastAPI & 0.110+ & async, OpenAPI auto, validation Pydantic intégrée \\
+  Frontend dashboard & HTMX + Jinja2 & dernier & alternative aux SPA JS lourdes, simplicité \\
+  Persistence locale & SQLite & 3.35+ & mode WAL, embarqué, pas de serveur externe \\
+  Chiffrement applicatif & cryptography (Fernet) & 42+ & file de repli chiffrée, AES-128-CBC plus HMAC \\
+  HTTP client & httpx & 0.27+ & async, support HTTP/2, API moderne \\
+  Retry & tenacity & 8+ & retry exponentiel configurable par décorateur \\
+  MQTT client & paho-mqtt & 2+ & support TLS et QoS, référence de l'écosystème \\
+  Port série & pyserial & 3.5+ & support pseudo-tty Linux pour socat \\
+  File watcher & watchdog & 4+ & surveillance \texttt{profiles/} et \texttt{drop/} \\
+  HL7 v2 parser & hl7apy & 1.3+ & parsing ORU\textasciicircum{}R01, modèle objet complet \\
+  FHIR validation & fhir.resources & 7+ & modèles Pydantic FHIR R4 officiels \\
+  Conteneurisation & Docker Compose & 2.20+ & orchestration multi-services en local \\
+  Serveur FHIR cible & hapiproject/hapi & image officielle & FHIR R4 complet, validateur intégré \\
+  Broker MQTT & eclipse-mosquitto & 2+ & image officielle, configuration minimale \\
+  Pseudo-tty & socat & 1.7+ & simulation port série dans conteneur \\
+\end{longtable}
+
+\section{Modèle de données}
+\label{sec:archi-modele-donnees}
+
+Les profils JSON déclarent trois axes : le canal d'entrée, la langue de structuration et le mapping de sortie. La validation est portée par Pydantic v2 à l'amorçage et à chaque hot-reload. Un profil invalide est rejeté avec un log d'erreur explicite et n'est pas activé.
+
+\subsection{Profil dispositif}
+
+Un profil contient des champs obligatoires. \texttt{id} et \texttt{name} identifient le dispositif. \texttt{channel} déclare le type (TCP, MQTT, file, serial) et ses paramètres. \texttt{parser} déclare le format (HL7v2, JSON, XML, ASCII) et un schéma de décodage. \texttt{mapping} associe chaque variable au code LOINC et à l'unité cible. \texttt{plausibility} fixe les plages de plausibilité utilisées pour les alertes orange.
+
+\begin{lstlisting}[style=bridgejson, caption={Profil JSON pour le moniteur Philips IntelliVue MX450.}, label={lst:profile-philips}]
+{
+  "id": "philips-mx450",
+  "name": "Philips IntelliVue MX450",
+  "channel": {
+    "type": "tcp_mllp",
+    "host": "0.0.0.0",
+    "port": 2575
+  },
+  "parser": {
+    "format": "hl7v2",
+    "trigger": "ORU^R01",
+    "obx_path": "OBX-3"
+  },
+  "mapping": {
+    "SpO2":   { "loinc": "59408-5", "unit": "%" },
+    "HR":     { "loinc": "8867-4",  "unit": "bpm" },
+    "BP_sys": { "loinc": "8480-6",  "unit": "mmHg" },
+    "BP_dia": { "loinc": "8462-4",  "unit": "mmHg" }
+  },
+  "plausibility": {
+    "SpO2":   { "min": 70,  "max": 100 },
+    "HR":     { "min": 30,  "max": 220 },
+    "BP_sys": { "min": 60,  "max": 230 },
+    "BP_dia": { "min": 30,  "max": 130 }
+  }
+}
+\end{lstlisting}
+
+Le profil ci-dessous illustre la déclaration d'un canal MQTT pour un capteur portable. La structure est strictement la même : seuls les blocs \texttt{channel} et \texttt{parser} changent. Cette uniformité est ce qui permet d'ajouter un dispositif sans toucher au code.
+
+\begin{lstlisting}[style=bridgejson, caption={Profil JSON pour le glucomètre Masimo Radical-7 via MQTT.}, label={lst:profile-masimo}]
+{
+  "id": "masimo-radical7",
+  "name": "Masimo Radical-7",
+  "channel": {
+    "type": "mqtt",
+    "broker": "mosquitto",
+    "port": 1883,
+    "topic": "devices/+/spo2"
+  },
+  "parser": {
+    "format": "json",
+    "keys": { "spo2": "spo2", "pr": "pr", "ts": "timestamp" }
+  },
+  "mapping": {
+    "spo2": { "loinc": "59408-5", "unit": "%" },
+    "pr":   { "loinc": "8867-4",  "unit": "bpm" }
+  },
+  "plausibility": {
+    "spo2": { "min": 70, "max": 100 },
+    "pr":   { "min": 30, "max": 220 }
+  }
+}
+\end{lstlisting}
+
+\subsection{Modèle de persistance}
+
+La persistance locale utilise SQLite en mode WAL. Trois tables principales structurent les données. La table \texttt{profiles} stocke les profils chargés et leur état (actif, erreur, désactivé). La table \texttt{transmissions} enregistre chaque message émis avec son statut (succès, échec, retry, quarantaine), son horodatage et l'ID équipement. La table \texttt{quarantine} conserve les trames non décodables pour analyse a posteriori. Aucune valeur clinique horodatée n'est stockée hors du flux de transmission. Les migrations Alembic ne sont pas requises pour la démo.
+
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.95\linewidth}{\centering\vspace{1cm}\textit{TODO figure : schéma logique des trois tables \texttt{profiles}, \texttt{transmissions}, \texttt{quarantine} avec relations et clés.}\vspace{1cm}}}
+  \caption{Schéma logique de la persistance SQLite (à produire).}
+  \label{fig:archi-modele-persistance}
+\end{figure}
+% TODO figure : schéma ER simple à produire en TikZ ou en image PNG.
+
+\section{Mécanisme de plugin}
+\label{sec:archi-plugins}
+
+Un plugin est un répertoire dans \texttt{plugins/} contenant un manifeste \texttt{plugin.toml}, un ou plusieurs profils JSON, et optionnellement un module Python pour les décodages exotiques. Le Plugin Manager scanne ce répertoire à l'amorçage et lors d'événements de file watcher. Un plugin valide est activé immédiatement. Un plugin invalide est rejeté et son erreur affichée sur le dashboard.
+
+\begin{lstlisting}[style=bridgebase, language={}, caption={Manifeste plugin.toml minimal.}, label={lst:plugin-toml}]
+[plugin]
+name = "drager-evita-v500"
+version = "0.1.0"
+layer = "adapter+parser"
+description = "Driver RS-232 MEDIBUS pour ventilateurs Drager"
+
+[loinc]
+codes = ["19994-3", "20077-4", "76530-3", "9279-1", "76270-8"]
+
+[entrypoints]
+adapter = "drager_evita.adapter:MEDIBUSAdapter"
+parser  = "drager_evita.parser:MEDIBUSParser"
+profile = "profiles/drager-evita-v500.json"
+\end{lstlisting}
+
+La validation du manifeste vérifie que les codes LOINC déclarés sont conformes à la liste blanche du middleware. Un plugin qui déclarerait un code inconnu, un layer non supporté ou un entrypoint introuvable est rejeté avec un log d'erreur. Cette validation protège l'OT contre l'injection accidentelle de mappings non revus.
+
+\subsection{Cycle de vie d'un plugin}
+
+Le cycle de vie suit cinq étapes successives.
+
+\begin{enumerate}[leftmargin=2cm]
+  \item Découverte : scan du répertoire \texttt{plugins/} à l'amorçage et sur événement watchdog.
+  \item Validation : lecture du manifeste TOML et des profils JSON, contrôle Pydantic.
+  \item Chargement : import Python isolé dans un namespace dédié.
+  \item Activation : démarrage du driver Adapter et abonnement aux flux entrants.
+  \item Hot-reload et désactivation : rechargement à modification du manifeste, désactivation à la suppression du répertoire.
+\end{enumerate}
+
+\begin{bridgeinfo}[Communauté et registre]
+Le mécanisme de plugin est conçu pour qu'un fabricant ou un hôpital tiers puisse écrire et publier son plugin. À terme, un registre public de type HACS sera proposé, gouverné par revue de code et qualité du mapping LOINC. La démo livre la mécanique de chargement, le registre est documenté en perspective F1 (cf. roadmap).
+\end{bridgeinfo}
+
+\section{Choix d'instanciation pour la démo}
+\label{sec:archi-demo}
+
+La démo livre quatre profils nativement (\texttt{philips-mx450}, \texttt{masimo-radical7}, \texttt{welchallyn-cp150}, \texttt{drager-evita-v500}) et un plugin exemple dans \texttt{plugins/example-temperature/}. Ce plugin minimal couvre un capteur de température fictif. Il prouve que le mécanisme de chargement fonctionne et que la passerelle est extensible sans modification de son c\oe ur.

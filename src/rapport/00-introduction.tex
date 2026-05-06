@@ -1,0 +1,26 @@
+% =====================================================================
+% Introduction generale du rapport
+% =====================================================================
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+\label{ch:introduction}
+
+Le système de santé belge déploie le Belgian Integrated Health Record (BIHR), vue unique des données de santé du citoyen \cite{bihr_overview}. Le \emph{Plan d'action interfédéral eSanté 2025-2027} confie à l'INAMI son pilotage et au service eHealth la mise en {\oe}uvre technique \cite{plan_esante_2025_2027,ehealth_services_base}.
+
+Un fossé technologique persiste. La majorité des hôpitaux belges échantillonnés n'atteignent pas le stade 4 de maturité numérique, qui suppose l'intégration automatique des dispositifs au DPI \cite{kce_362_dpi}. Trois causes : un parc Legacy de durée de vie 15 à 20 ans face à des standards qui évoluent tous les 3 à 5 ans ; le règlement MDR 2017/745 qui fait perdre le marquage CE à toute modification significative \cite{mdr_2017_745} ; l'absence de format universel d'export (RS-232, Bluetooth Classic, XML propriétaire, TCP brut coexistent).
+
+Nous proposons un \emph{middleware Edge configurable et passif} qui absorbe l'hétérogénéité côté équipements et émet en HL7 FHIR R4 vers le DPI ou le BIHR \cite{hl7_fhir_r4}. La passerelle ne modifie ni le firmware ni le câblage : elle préserve le marquage CE et clarifie la chaîne de responsabilité. Configurable par profils JSON, elle ouvre la voie à une extensibilité communautaire.
+
+\section*{Plan du rapport}
+
+Le rapport suit la structure du cours TS6 :
+\begin{enumerate}
+  \item \emph{Introduction à l'e-health} : cadre belge, verrou Legacy, choix de FHIR.
+  \item \emph{Applications mobiles et plateformes} : positionnement dans la pyramide d'architecture.
+  \item \emph{Intégration des dispositifs} : c{\oe}ur technique. HL7 v2, FHIR, KMEHR, SNOMED-CT, LOINC, profils IHE PCD et DEC.
+  \item \emph{Architecture technologique} : pile OSI, mTLS, services ETEE, perspectives SDN.
+  \item \emph{Capteurs et dispositifs} : typologie et capture passive.
+  \item \emph{Implémentation, adoption, évaluation} : déploiement, statut MDR, indicateurs.
+  \item \emph{Éthique, sécurité et confidentialité} : RGPD, triade CIA, gouvernance, AIPD.
+\end{enumerate}
+La conclusion articule trois niveaux : technique, systémique, prospectif. Les annexes regroupent schémas, profils JSON et scénarios de démonstration.

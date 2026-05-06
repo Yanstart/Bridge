@@ -1,0 +1,392 @@
+\chapter{Exigences fonctionnelles}
+\label{ch:exigences-fonctionnelles}
+
+Ce chapitre énumère les 33 exigences fonctionnelles de la démo. L'organisation suit les quatre couches du pipeline (Adapter, Parser, Mapper, Transport), complétées par les blocs Publication, Dashboard et Configuration. Chaque exigence porte un identifiant stable, une priorité MoSCoW (MUST, SHOULD, COULD), une source bibliographique et un critère de recette mesurable. La traçabilité vers les exigences non-fonctionnelles et l'architecture est précisée dans les chapitres suivants.
+
+\section*{Synthèse}
+\label{sec:ef-synthese}
+
+\bridgezebra
+\begin{longtable}{p{2.5cm}p{7.5cm}p{1.5cm}p{2.8cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries ID} & {\color{white}\bfseries Titre} & {\color{white}\bfseries Priorité} & {\color{white}\bfseries Couche} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries ID} & {\color{white}\bfseries Titre} & {\color{white}\bfseries Priorité} & {\color{white}\bfseries Couche} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  EF-ADP-001 & Capture TCP HL7v2 (MLLP)                    & MUST   & Adapter \\
+  EF-ADP-002 & Capture MQTT BLE simulé                     & MUST   & Adapter \\
+  EF-ADP-003 & Capture fichier déposé                      & MUST   & Adapter \\
+  EF-ADP-004 & Capture RS-232 MEDIBUS                      & MUST   & Adapter \\
+  EF-ADP-005 & Reconnexion automatique                     & SHOULD & Adapter \\
+  EF-ADP-006 & Hot-reload des profils                      & MUST   & Adapter \\
+  EF-PRS-001 & Sélection du profil par Device ID           & MUST   & Parser \\
+  EF-PRS-002 & Décodage selon profil                       & MUST   & Parser \\
+  EF-PRS-003 & Conversion d'unités                         & MUST   & Parser \\
+  EF-PRS-004 & Horodatage UTC normalisé                    & MUST   & Parser \\
+  EF-PRS-005 & Quarantaine sur erreur de format            & MUST   & Parser \\
+  EF-MAP-001 & Codification LOINC                          & MUST   & Mapper \\
+  EF-MAP-002 & Construction Observation FHIR               & MUST   & Mapper \\
+  EF-MAP-003 & Construction Device et DeviceMetric         & MUST   & Mapper \\
+  EF-MAP-004 & Résolution patient                          & MUST   & Mapper \\
+  EF-MAP-005 & Validation FHIR avant émission              & MUST   & Mapper \\
+  EF-TRP-001 & POST Bundle FHIR                            & MUST   & Transport \\
+  EF-TRP-002 & Retry exponentiel                           & MUST   & Transport \\
+  EF-TRP-003 & Fallback file SQLite chiffrée               & MUST   & Transport \\
+  EF-TRP-004 & mTLS configurable                           & SHOULD & Transport \\
+  EF-PUB-001 & Persistance du statut de transmission       & MUST   & Publication \\
+  EF-PUB-002 & Log structuré JSON sans donnée patient      & MUST   & Publication \\
+  EF-PUB-003 & ACK applicatif et Resource ID               & MUST   & Publication \\
+  EF-DSH-001 & CRUD profils JSON                           & MUST   & Dashboard \\
+  EF-DSH-002 & Statut couleur par équipement               & MUST   & Dashboard \\
+  EF-DSH-003 & Contexte indicatif sur anomalie             & MUST   & Dashboard \\
+  EF-DSH-004 & Alertes mail sans donnée patient            & MUST   & Dashboard \\
+  EF-DSH-005 & Compteurs OT                                & SHOULD & Dashboard \\
+  EF-DSH-006 & Aucune donnée clinique exposée              & MUST   & Dashboard \\
+  EF-PLG-001 & Chargement du répertoire \texttt{plugins/}  & MUST   & Plugins \\
+  EF-PLG-002 & Validation manifeste \texttt{plugin.toml}   & MUST   & Plugins \\
+  EF-PLG-003 & Hot-reload plugin                           & SHOULD & Plugins \\
+  EF-PLG-004 & Isolation des erreurs plugin                & MUST   & Plugins \\
+\end{longtable}
+
+\section{Adapter Layer}
+\label{sec:ef-adapter}
+
+L'Adapter Layer absorbe les flux entrants. Elle expose un driver par canal physique ou logique (TCP MLLP, MQTT, file-watcher, port série). Chaque driver est un point d'extension chargé dynamiquement, ce qui permet d'ajouter un nouveau canal via plugin sans toucher au cœur.
+
+\subsection*{EF-ADP-001 : Capture TCP HL7v2 (MLLP)}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT écouter sur le port TCP 2575 en protocole MLLP et accepter les messages HL7 v2 ORU\textasciicircum{}R01 émis par le simulateur Philips IntelliVue MX450.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.3 ; \cite{philips_piic_ix}, \cite{ihe_pcd_tf}.
+  \item[Recette] 100 messages ORU\textasciicircum{}R01 injectés en 30 s, 100 messages acquittés au niveau MLLP, latence p95 inférieure à 200 ms par message.
+  \item[Lié à] EF-PRS-001, EF-PRS-002, ENF-PERF-001
+\end{description}
+
+\subsection*{EF-ADP-002 : Capture MQTT BLE simulé}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT s'abonner au topic MQTT \texttt{devices/+/spo2} et recevoir les messages JSON publiés par le simulateur Masimo Radical-7.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.5 ; \cite{masimo_radical7_manual}.
+  \item[Recette] 60 messages JSON publiés sur 60 s par le simulateur, 60 messages reçus par le bridge, taux de perte égal à 0.
+  \item[Lié à] EF-PRS-001, EF-PRS-002
+\end{description}
+
+\subsection*{EF-ADP-003 : Capture fichier déposé}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT surveiller un dossier configurable et déclencher le traitement à chaque création d'un nouveau fichier SCP-ECG ou XML conforme au profil Welch Allyn CP150.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.3 ; \cite{welchallyn_cp150_dfu}.
+  \item[Recette] 10 fichiers SCP-ECG déposés dans le volume monté, 10 traitements déclenchés en moins de 2 s par fichier.
+  \item[Lié à] EF-PRS-002, EF-MAP-002
+\end{description}
+
+\subsection*{EF-ADP-004 : Capture RS-232 MEDIBUS}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT lire en continu sur un port série pseudo-tty (créé via socat à 9600 bps 8E1) et reconnaître les trames ASCII MEDIBUS émises par le simulateur Dräger Evita V500.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.4 ; \cite{draeger_medibus_protocol}, \cite{mdpnp_medibus_impl}.
+  \item[Recette] Émission de 50 trames MEDIBUS valides en 5 minutes, 50 trames délimitées (STX/ETX) extraites avec checksum vérifié.
+  \item[Lié à] EF-PRS-001, EF-PRS-002
+\end{description}
+
+\subsection*{EF-ADP-005 : Reconnexion automatique}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système SHOULD relancer une connexion perdue (TCP, série, MQTT) selon une stratégie de retry exponentiel plafonnée à 60 secondes par tentative.
+  \item[Priorité] SHOULD
+  \item[Source] Cours TS6 ch.4 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Déconnexion forcée du simulateur, reconnexion effective en moins de 60 s, statut de l'équipement repassé en vert sur le dashboard.
+  \item[Lié à] EF-DSH-002, ENF-RESL-001
+\end{description}
+
+\subsection*{EF-ADP-006 : Hot-reload des profils}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT recharger automatiquement un profil JSON modifié dans \texttt{profiles/} sans redémarrage du processus.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.6 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Modification d'un profil JSON existant, prochain message reçu traité avec la nouvelle configuration en moins de 5 s.
+  \item[Lié à] EF-PLG-003, EF-DSH-001
+\end{description}
+
+\section{Parser Layer}
+\label{sec:ef-parser}
+
+Le Parser Layer décode les trames brutes selon le profil JSON associé au dispositif émetteur. Il harmonise les unités, horodate en UTC et isole les messages mal formés en file de quarantaine. Il sert de point pivot entre le bruit terrain et la sémantique normalisée.
+
+\subsection*{EF-PRS-001 : Sélection du profil par Device ID}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT identifier le profil JSON applicable à une trame entrante à partir d'un Device ID extrait du canal (adresse IP, topic MQTT, nom de fichier, port série).
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.3 ; \cite{ihe_pcd_tf}.
+  \item[Recette] 4 sources émettant en parallèle, chaque message routé vers le bon profil dans 100 \% des cas, vérifié sur 1000 messages.
+  \item[Lié à] EF-PRS-002, EF-MAP-001
+\end{description}
+
+\subsection*{EF-PRS-002 : Décodage selon profil}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT décoder la trame selon le format déclaré dans le profil (HL7 v2, JSON, XML, ASCII MEDIBUS, SCP-ECG) et produire un objet normalisé interne.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.3 ; \cite{hl7_fhir_r4}, \cite{draeger_medibus_protocol}.
+  \item[Recette] Jeu de 1000 trames mixtes (4 formats), 1000 objets normalisés produits, 0 exception non gérée.
+  \item[Lié à] EF-PRS-005, EF-MAP-002
+\end{description}
+
+\subsection*{EF-PRS-003 : Conversion d'unités}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT convertir les mesures vers les unités cliniques cibles standardisées : mmHg pour les pressions, \% pour les saturations, bpm pour les fréquences, mL/h pour les débits.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.5 ; \cite{hl7_fhir_r4}.
+  \item[Recette] Test unitaire couvrant les 6 codes LOINC retenus, conversion vérifiée à 0,1 \% près sur des valeurs de référence.
+  \item[Lié à] EF-MAP-001, EF-MAP-002
+\end{description}
+
+\subsection*{EF-PRS-004 : Horodatage UTC normalisé}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT apposer un timestamp UTC au format ISO 8601 sur chaque objet normalisé dès l'arrivée dans la couche Parser.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.7 ; \cite{hl7_fhir_r4}.
+  \item[Recette] Décalage entre instant de réception réseau et timestamp inscrit inférieur à 100 ms, mesuré sur 100 trames.
+  \item[Lié à] EF-MAP-002, ENF-PERF-001
+\end{description}
+
+\subsection*{EF-PRS-005 : Quarantaine sur erreur de format}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT placer en file de quarantaine tout message non décodable et basculer le statut de l'équipement émetteur en orange.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Injection de 10 trames volontairement corrompues, 10 messages présents dans la file de quarantaine, statut équipement orange visible sur le dashboard.
+  \item[Lié à] EF-DSH-002, EF-DSH-003
+\end{description}
+
+\section{Mapper Layer}
+\label{sec:ef-mapper}
+
+Le Mapper Layer transforme les objets normalisés en ressources FHIR R4 sémantiquement codées. Il assigne les codes LOINC, construit les ressources Observation, Device et DeviceMetric, et résout l'identité patient via une table de correspondance simulée. Il valide chaque Bundle avant émission.
+
+\subsection*{EF-MAP-001 : Codification LOINC}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT assigner un code LOINC à chaque mesure produite, selon la table : SpO\textsubscript{2} 59408-5, FC 8867-4, PA sys 8480-6, PA dia 8462-4, glycémie 2339-0, FEV1 20150-9.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.3 ; \cite{hl7_fhir_r4}, \cite{ihe_pcd_tf}.
+  \item[Recette] 6 mesures de référence générées par les simulateurs, codes LOINC correctement assignés à 100 \%, vérifié par inspection du Bundle.
+  \item[Lié à] EF-MAP-002, EF-PLG-002
+\end{description}
+
+\subsection*{EF-MAP-002 : Construction Observation FHIR}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT construire une ressource FHIR R4 Observation conforme pour chaque mesure, avec les champs \texttt{code}, \texttt{valueQuantity}, \texttt{effectiveDateTime}, \texttt{subject} et \texttt{device}.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.3 ; \cite{hl7_fhir_r4}.
+  \item[Recette] 100 ressources Observation générées, 100 \% validées par le HAPI Validator embarqué.
+  \item[Lié à] EF-MAP-005, EF-TRP-001
+\end{description}
+
+\subsection*{EF-MAP-003 : Construction Device et DeviceMetric}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT créer ou mettre à jour les ressources FHIR Device et DeviceMetric associées à chaque équipement émetteur, avec horodatage et identifiant stable.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.3 ; \cite{hl7_fhir_r4}, \cite{ihe_pcd_tf}.
+  \item[Recette] 4 simulateurs actifs, 4 ressources Device créées une seule fois, DeviceMetric mises à jour à chaque mesure.
+  \item[Lié à] EF-MAP-002, EF-MAP-005
+\end{description}
+
+\subsection*{EF-MAP-004 : Résolution patient}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT résoudre l'identifiant patient FHIR à partir d'un mapping room ID vers patient simulé, lu dans une table de correspondance locale (l'INS réel n'est pas accessible en démo).
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.6 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Table de 4 chambres associées à 4 patients fictifs, chaque Observation rattachée au bon \texttt{subject} dans 100 \% des cas.
+  \item[Lié à] EF-MAP-002, ENF-CONF-001
+\end{description}
+
+\subsection*{EF-MAP-005 : Validation FHIR avant émission}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT valider chaque Bundle FHIR R4 contre le profil officiel avant d'émettre vers HAPI, et rejeter localement tout Bundle non conforme.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.3 ; \cite{hl7_fhir_r4}.
+  \item[Recette] 1000 Bundles générés en charge nominale, 100 \% validés selon HAPI Validator, 0 émission rejetée par le serveur HAPI distant.
+  \item[Lié à] EF-MAP-002, EF-TRP-001
+\end{description}
+
+\section{Transport Layer}
+\label{sec:ef-transport}
+
+Le Transport Layer pousse les Bundles validés vers le serveur HAPI FHIR cible. Il met en œuvre une stratégie de retry exponentiel et un fallback persistant chiffré quand le serveur est indisponible. La couche est conçue pour activer mTLS sans modification de code en environnement de production.
+
+\subsection*{EF-TRP-001 : POST Bundle FHIR}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT émettre un Bundle FHIR R4 transaction sur l'endpoint HAPI FHIR via HTTP POST avec en-tête \texttt{Content-Type: application/fhir+json}.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.4 ; \cite{hl7_fhir_r4}.
+  \item[Recette] 100 Bundles transmis, 100 réponses HTTP 201 Created reçues, latence p95 inférieure à 500 ms.
+  \item[Lié à] EF-MAP-005, EF-PUB-003
+\end{description}
+
+\subsection*{EF-TRP-002 : Retry exponentiel}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT effectuer 3 tentatives en cas d'échec réseau ou HTTP 5xx, avec intervalles de 1 s, 4 s puis 16 s.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.4 ; \cite{ihe_pcd_tf}.
+  \item[Recette] HAPI arrêté pendant 10 s, message émis pendant l'arrêt, livraison effective sur la deuxième ou troisième tentative.
+  \item[Lié à] EF-TRP-003, ENF-RESL-001
+\end{description}
+
+\subsection*{EF-TRP-003 : Fallback file SQLite chiffrée}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT persister localement les Bundles non livrés après 3 retries dans une file SQLite en mode WAL, chiffrée applicatif (Fernet ou équivalent).
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] HAPI coupé 60 s, 30 messages persistés en SQLite, base illisible sans la clé, livraison rejouée à la reprise du serveur.
+  \item[Lié à] EF-TRP-001, ENF-CONF-001
+\end{description}
+
+\subsection*{EF-TRP-004 : mTLS configurable}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système SHOULD permettre l'activation de mTLS via configuration, sans modification du code, pour la transmission vers HAPI en production. La démo fonctionne en TLS plain local.
+  \item[Priorité] SHOULD
+  \item[Source] Cours TS6 ch.4, ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Test d'activation manuelle avec un certificat client autosigné, handshake mTLS réussi vers HAPI configuré en exigence client cert.
+  \item[Lié à] EF-TRP-001, ENF-SEC-001
+\end{description}
+
+\section{Publication}
+\label{sec:ef-publication}
+
+La couche Publication trace les statuts de transmission, journalise les événements en JSON structuré et conserve les ACK applicatifs renvoyés par HAPI. Elle alimente le dashboard sans jamais exposer de valeur clinique patient.
+
+\subsection*{EF-PUB-001 : Persistance du statut de transmission}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT enregistrer en SQLite, pour chaque message, son statut final dans l'ensemble \{succès, échec, retry, quarantaine\} avec horodatage et identifiant équipement.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] 1000 messages traités, 1000 entrées présentes en base, statuts cohérents avec les logs.
+  \item[Lié à] EF-DSH-005, EF-PUB-002
+\end{description}
+
+\subsection*{EF-PUB-002 : Log structuré JSON sans donnée patient}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT émettre un log structuré JSON pour chaque événement (acquisition, parse, mapping, transport). Aucun champ ne DOIT contenir de valeur clinique d'un patient.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] 10 000 lignes de log générées, audit automatisé par grep sur les codes LOINC et identifiants patients, 0 occurrence détectée.
+  \item[Lié à] EF-DSH-006, ENF-CONF-001
+\end{description}
+
+\subsection*{EF-PUB-003 : ACK applicatif et Resource ID}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT enregistrer pour chaque émission réussie le code HTTP 201 retourné par HAPI ainsi que le Resource ID FHIR du Bundle créé.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.4 ; \cite{hl7_fhir_r4}.
+  \item[Recette] 100 messages émis, 100 Resource IDs FHIR distincts persistés et consultables depuis le dashboard.
+  \item[Lié à] EF-PUB-001, EF-TRP-001
+\end{description}
+
+\section{Dashboard}
+\label{sec:ef-dashboard}
+
+Le dashboard sert deux fonctions : configurer le middleware (CRUD profils, plugins) et superviser l'OT (statut équipements, anomalies, alertes mail). Il expose une API REST FastAPI doublée d'une interface HTMX. Aucune valeur clinique ne transite par cette interface.
+
+\begin{bridgewarn}[Règle de minimisation]
+Aucune valeur clinique d'un patient ne doit apparaître dans le dashboard, les logs structurés, ou les alertes mail. Le dashboard regarde les flux, pas le contenu. Les techniciens biomédicaux voient \emph{que} les données circulent, pas \emph{ce qui} circule. Cette règle est testable et fait l'objet d'une recette dédiée à EF-DSH-006.
+\end{bridgewarn}
+
+\subsection*{EF-DSH-001 : CRUD profils JSON}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT permettre la création, la lecture, la mise à jour et la suppression de profils JSON dispositifs depuis l'interface web du dashboard.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.6 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Création d'un nouveau profil via le dashboard, profil détecté par le bridge en moins de 5 s, message reçu traité avec ce profil.
+  \item[Lié à] EF-ADP-006, EF-PLG-002
+\end{description}
+
+\subsection*{EF-DSH-002 : Statut couleur par équipement}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT afficher pour chaque équipement un indicateur trois états : vert (nominal), orange (anomalie), rouge (déconnecté). La mise à jour se fait via WebSocket en temps réel.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.6 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Déconnexion d'un simulateur, statut équipement passé en rouge sur le dashboard en moins de 5 s.
+  \item[Lié à] EF-ADP-005, EF-PRS-005
+\end{description}
+
+\subsection*{EF-DSH-003 : Contexte indicatif sur anomalie}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT afficher un motif technique pour chaque anomalie (\texttt{n'émet plus depuis X min}, \texttt{valeurs hors plage Y\%}, \texttt{certificat expiré}). Le motif DOIT être lié à un équipement, jamais à un patient.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.6, ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] 3 anomalies provoquées (silence, plage, certificat), 3 motifs distincts affichés correctement, aucune mention de patient.
+  \item[Lié à] EF-DSH-002, EF-DSH-006
+\end{description}
+
+\subsection*{EF-DSH-004 : Alertes mail sans donnée patient}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT envoyer un email au technicien biomédical sur chaque transition d'un équipement vers orange ou rouge. Le contenu DOIT être strictement technique : ID équipement, type d'erreur, horodatage, contexte technique.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] 5 transitions provoquées, 5 emails reçus dans la mailbox de test, audit du contenu : 0 donnée personnelle ni clinique détectée.
+  \item[Lié à] EF-DSH-002, EF-DSH-006
+\end{description}
+
+\subsection*{EF-DSH-005 : Compteurs OT}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système SHOULD afficher en page d'accueil les compteurs : équipements connectés, messages traités sur 24 h, messages en quarantaine.
+  \item[Priorité] SHOULD
+  \item[Source] Cours TS6 ch.6 ; \cite{ihe_pcd_tf}.
+  \item[Recette] 1000 messages traités sur la session de démo, compteurs cohérents avec le contenu de la base SQLite.
+  \item[Lié à] EF-PUB-001, EF-DSH-002
+\end{description}
+
+\subsection*{EF-DSH-006 : Aucune donnée clinique exposée}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT garantir qu'aucune valeur traduite (SpO\textsubscript{2}, FC, PA, glycémie, FEV1, MEDIBUS) n'apparaît dans le dashboard, les logs structurés, ou les alertes mail.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Revue manuelle de l'interface plus grep automatisé sur logs et mails portant sur les codes LOINC retenus et les unités cliniques. 0 occurrence tolérée.
+  \item[Lié à] EF-DSH-003, EF-DSH-004, ENF-CONF-001
+\end{description}
+
+\section{Configuration et plugins}
+\label{sec:ef-plugins}
+
+La passerelle expose une API plugin pour étendre les couches Adapter, Parser et Mapper. Un plugin se présente sous forme de paquet contenant un manifeste \texttt{plugin.toml}, un ou plusieurs profils JSON et optionnellement du code Python. Le scan, la validation et le hot-reload sont automatiques.
+
+\subsection*{EF-PLG-001 : Chargement du répertoire \texttt{plugins/}}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT scanner le répertoire \texttt{plugins/} à l'amorçage et charger tous les plugins valides.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.6 ; \cite{ihe_pcd_tf}.
+  \item[Recette] 3 plugins déposés dans \texttt{plugins/}, 3 plugins chargés et listés dans le dashboard à l'amorçage.
+  \item[Lié à] EF-PLG-002, EF-PLG-003
+\end{description}
+
+\subsection*{EF-PLG-002 : Validation manifeste \texttt{plugin.toml}}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT valider à l'amorçage et au hot-reload le manifeste \texttt{plugin.toml} de chaque plugin sur les champs obligatoires \texttt{name}, \texttt{version}, \texttt{layer}, \texttt{loinc\_codes}.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.6 ; \cite{ihe_pcd_tf}.
+  \item[Recette] 1 plugin valide accepté, 1 plugin avec manifeste tronqué rejeté avec log explicite, statut visible sur le dashboard.
+  \item[Lié à] EF-PLG-001, EF-MAP-001
+\end{description}
+
+\subsection*{EF-PLG-003 : Hot-reload plugin}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système SHOULD détecter à chaud l'ajout d'un nouveau plugin dans \texttt{plugins/} et déclencher son chargement sans redémarrage.
+  \item[Priorité] SHOULD
+  \item[Source] Cours TS6 ch.6 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Plugin déposé en cours d'exécution, chargement effectif en moins de 5 s, statut affiché sur le dashboard.
+  \item[Lié à] EF-ADP-006, EF-PLG-001
+\end{description}
+
+\subsection*{EF-PLG-004 : Isolation des erreurs plugin}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT contenir les exceptions levées par un plugin afin que les autres plugins et le cœur du middleware continuent de fonctionner normalement.
+  \item[Priorité] MUST
+  \item[Source] Cours TS6 ch.7 ; \cite{ihe_pcd_tf}.
+  \item[Recette] Injection d'un plugin défaillant levant une exception sur chaque message, autres plugins et cœur fonctionnels, plugin défaillant marqué en erreur sur le dashboard.
+  \item[Lié à] EF-PLG-002, EF-DSH-002
+\end{description}

@@ -1,0 +1,85 @@
+% =====================================================================
+% Annexes du rapport : figures, tableaux, renvoi CDC, glossaire, source demo
+% =====================================================================
+\appendix
+\chapter{Annexes}
+\label{ch:annexes-rapport}
+
+\section*{Annexe A : Renvoi vers le cahier des charges}
+\addcontentsline{toc}{section}{Annexe A : Renvoi vers le cahier des charges}
+
+Le présent rapport décrit la démarche académique et la grille d'analyse fondée sur les sept chapitres du cours TS6. Le cahier des charges (\texttt{cdc.pdf}) précise les exigences techniques pour l'implémentation de la démonstration et trace la traçabilité entre exigences, profils JSON et tests de recette. Les deux documents se complètent et se lisent ensemble.
+
+Les sections clés du CDC à consulter pour approfondir un point particulier sont rappelées dans le tableau~\ref{tab:renvoi-cdc}.
+
+\begin{table}[!htbp]
+\centering
+\bridgezebra
+\begin{tabular}{p{0.55\textwidth} p{0.35\textwidth}}
+\toprule
+\bridgeheader Sujet & Référence CDC \\
+\midrule
+Liste exhaustive des exigences fonctionnelles & CDC chapitre 4 (33 EF) \\
+Exigences non fonctionnelles mesurables & CDC chapitre 5 (12 ENF) \\
+Architecture détaillée et profils JSON & CDC chapitre 7 \\
+Plan de réalisation et Gantt & CDC chapitre 9 \\
+Recette finale de la démonstration & CDC chapitre 10 \\
+AIPD esquissée et analyse STRIDE & CDC chapitre 12 \\
+Roadmap F1 plugins, F2 anomalies, F3 EHDS & CDC chapitre 14 \\
+Mapping LOINC complet et exemple Bundle FHIR & CDC chapitre 17 \\
+\bottomrule
+\end{tabular}
+\caption{Renvois vers les sections du cahier des charges.}
+\label{tab:renvoi-cdc}
+\end{table}
+
+\section*{Annexe B : Glossaire des sigles}
+\addcontentsline{toc}{section}{Annexe B : Glossaire des sigles}
+
+Le glossaire reprend les sigles employés dans le corps du rapport. Il complète le glossaire étendu du cahier des charges.
+
+\begin{table}[!htbp]
+\centering
+\bridgezebra
+\begin{tabular}{p{0.18\textwidth} p{0.72\textwidth}}
+\toprule
+\bridgeheader Sigle & Signification \\
+\midrule
+AFMPS & Agence Fédérale des Médicaments et Produits de Santé \\
+AIPD & Analyse d'Impact relative à la Protection des Données \\
+APD & Autorité de Protection des Données \\
+BIHR & Belgian Integrated Health Record \\
+BLE & Bluetooth Low Energy \\
+CIA & Confidentialité, Intégrité, Disponibilité \\
+DPI & Dossier Patient Informatisé \\
+DPO & Data Protection Officer \\
+EHDS & European Health Data Space \\
+ETEE & End-to-End Encryption (services eHealth) \\
+FHIR & Fast Healthcare Interoperability Resources \\
+HL7 & Health Level Seven \\
+IHE & Integrating the Healthcare Enterprise \\
+INAMI & Institut National d'Assurance Maladie-Invalidité \\
+INS & Identifiant National de Santé \\
+KMEHR & Kind Messages for Electronic Healthcare Record \\
+LOINC & Logical Observation Identifiers Names and Codes \\
+MDR & Medical Device Regulation (UE 2017/745) \\
+MEDIBUS & Protocole série Dräger pour ventilateurs et stations \\
+MLLP & Minimal Lower Layer Protocol \\
+MoSCoW & Méthode de priorisation Must, Should, Could, Won't \\
+MQTT & Message Queuing Telemetry Transport \\
+mTLS & Mutual Transport Layer Security \\
+OT & Operational Technology \\
+PCD & Patient Care Device (profil IHE) \\
+RGPD & Règlement Général sur la Protection des Données \\
+SCP-ECG & Standard Communications Protocol for ECG \\
+TOML & Tom's Obvious Minimal Language \\
+\bottomrule
+\end{tabular}
+\caption{Glossaire des sigles employés dans le rapport.}
+\label{tab:glossaire-rapport}
+\end{table}
+
+\section*{Annexe C : Source de la démonstration}
+\addcontentsline{toc}{section}{Annexe C : Source de la démonstration}
+
+Le code source du middleware Python, les quatre simulateurs Docker, les profils JSON et le plugin exemple sont livrés sous forme d'un dépôt Git remis avec le présent rapport. La procédure de lancement tient en moins de dix lignes de commandes, documentées dans le \texttt{README.md} du dépôt. Le jury peut reproduire la démonstration en local avec \texttt{docker compose up}.

@@ -1,0 +1,35 @@
+{
+  "id": "example-temperature",
+  "name": "Capteur temperature (plugin demo)",
+  "enabled": true,
+  "channel": {
+    "type": "file_watcher",
+    "directory": "/app/drop",
+    "file_pattern": "temperature-*.csv"
+  },
+  "parser": {
+    "type": "temperature_csv",
+    "encoding": "utf-8"
+  },
+  "mapping": {
+    "fields": [
+      {
+        "source_path": "$.temperature_celsius",
+        "loinc_code": "8310-5",
+        "loinc_display": "Body temperature",
+        "unit": "Cel",
+        "ucum_code": "Cel",
+        "plausibility": { "min": 30.0, "max": 43.0 }
+      }
+    ]
+  },
+  "destination": {
+    "type": "fhir_hapi",
+    "url": "http://hapi:8080/fhir",
+    "timeout_seconds": 10.0
+  },
+  "device_metadata": {
+    "manufacturer": "Demo",
+    "model_number": "TempSensor-100"
+  }
+}

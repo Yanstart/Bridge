@@ -1,0 +1,86 @@
+\chapter{Standards et interopérabilité}
+\label{ch:standards}
+
+La passerelle s'aligne sur les standards reconnus de la santé numérique. Ce chapitre présente les trois couches d'interopérabilité que tout middleware de ce type doit franchir et explique pourquoi FHIR R4 est retenu comme pivot principal de la démo. Les standards belges et les normes ISO de référence sont cités en clôture pour cadrer l'extrapolation industrielle.
+
+\section{Trois couches d'interopérabilité}
+\label{sec:trois-couches-interop}
+
+L'interopérabilité ne se réduit pas à un format de fichier. Elle s'organise en trois couches indépendantes, chacune répondant à une question distincte et mobilisant des standards spécifiques. La passerelle traite ces trois couches dans un même pipeline configurable \cite{ihe_pcd_tf}.
+
+\bridgezebra
+\begin{longtable}{p{3.5cm}p{5.5cm}p{6cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Couche} & {\color{white}\bfseries Question résolue} & {\color{white}\bfseries Standards mobilisés} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Couche} & {\color{white}\bfseries Question résolue} & {\color{white}\bfseries Standards mobilisés} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Technique    & Comment transporter les bits ?       & TCP, MLLP, MQTT, HTTP, mTLS \\
+  Syntaxique   & Comment structurer les messages ?    & HL7 v2, FHIR R4, KMEHR, DICOM, SCP-ECG \\
+  Sémantique   & Quel sens pour les données ?         & LOINC, SNOMED-CT \\
+\end{longtable}
+
+\section{HL7 FHIR R4 : pivot moderne}
+\label{sec:fhir-pivot}
+
+FHIR R4 \cite{hl7_fhir_r4} est le standard pivot retenu pour la démo. Il expose des ressources sémantiquement typées, accessibles en REST, sérialisées en JSON, et profilables pour des contraintes locales. La validation par schéma et par profils permet de refuser tout Bundle non conforme avant émission, ce qui réduit le nombre d'erreurs côté serveur cible.
+
+La démo mobilise cinq ressources FHIR : Observation pour les mesures vitales, Device pour l'identité du dispositif émetteur, DeviceMetric pour ses caractéristiques métrologiques, Patient pour l'identité du sujet (résolue via une table simulée), et Bundle de type \texttt{transaction} pour l'émission groupée vers HAPI. Cette panoplie suffit à couvrir les quatre cas d'usage UC1 à UC4 du chapitre 3.
+
+\section{Interopérabilité avec le monde HL7 v2}
+\label{sec:hl7v2-coexistence}
+
+Le monde hospitalier reste majoritairement HL7 v2 \cite{hl7_v2}. Les moniteurs Philips IntelliVue et la plupart des systèmes legacy émettent des messages ORU\textasciicircum{}R01 sur MLLP. La passerelle consomme ces messages en entrée via son driver TCP MLLP. Elle n'émet jamais en HL7 v2 : tout ce qui sort va vers HAPI en FHIR R4. Cette asymétrie est volontaire. Elle évite de dupliquer la couche de mapping et concentre la valeur sur la traduction legacy vers moderne.
+
+\section{Profil IHE PCD}
+\label{sec:ihe-pcd}
+
+Le comité IHE Patient Care Device publie des profils d'intégration normés pour les dispositifs médicaux \cite{ihe_pcd_tf}. Notre Adapter Layer s'inspire du profil PCD-01 (Communicate PCD Data), qui définit comment transporter une mesure d'un dispositif vers un consommateur. Le profil PCD-01 est ancré sur HL7 v2 dans sa version originale. Nous en reprenons la sémantique des champs (\texttt{OBX}, \texttt{MSH}, \texttt{PID}) pour notre objet normalisé interne, avant traduction en FHIR.
+
+\section{Vocabulaires sémantiques}
+\label{sec:vocabulaires-semantiques}
+
+LOINC est le vocabulaire retenu pour coder les grandeurs cliniques chiffrées de la démo. SNOMED-CT est mentionné en perspective pour les diagnostics et observations qualitatives mais reste hors-scope démo, qui se limite aux mesures vitales codées par LOINC. Le tableau suivant liste les codes effectivement utilisés par les quatre simulateurs et le plugin exemple.
+
+\bridgezebra
+\begin{longtable}{p{6cm}p{3cm}p{3cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Code LOINC} & {\color{white}\bfseries Unité} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Code LOINC} & {\color{white}\bfseries Unité} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  SpO\textsubscript{2}                & 59408-5  & \%       \\
+  Fréquence cardiaque                 & 8867-4   & bpm      \\
+  Pression artérielle systolique      & 8480-6   & mmHg     \\
+  Pression artérielle diastolique     & 8462-4   & mmHg     \\
+  Glycémie capillaire                 & 2339-0   & mg/dL    \\
+  FEV1                                & 20150-9  & L        \\
+  FVC                                 & 19868-9  & L        \\
+  ECG 12 dérivations                  & 11524-6  & étude    \\
+  FiO\textsubscript{2}                & 19994-3  & \%       \\
+  PEEP                                & 20077-4  & cmH\textsubscript{2}O \\
+\end{longtable}
+
+\section{Standards belges et écosystème e-santé}
+\label{sec:standards-belges}
+
+Le projet s'inscrit dans l'écosystème belge de la santé numérique. KMEHR \cite{kmehr_spec} est le standard d'échange XML pour les messages cliniques entre acteurs belges. Il alimente l'eHealthBox et les hubs régionaux \cite{ehealth_services_base}. BIHR \cite{bihr_overview} consolide le dossier patient à l'échelle nationale via MetaHub \cite{metahub_overview}, qui fédère les hubs régionaux (RSW pour la Wallonie, ABRUMET pour Bruxelles, CoZo pour la Flandre). Aucun de ces standards n'est implémenté dans la démo. Ils figurent dans la roadmap au chapitre~\ref{ch:roadmap-risques} comme évolution post-démo, condition d'industrialisation pour un déploiement en milieu hospitalier belge.
+
+\section{Normes ISO de référence}
+\label{sec:iso-reference}
+
+Quatre normes ISO cadrent le projet sans qu'il prétende à leur conformité au stade démo. ISO 13606 \cite{iso_13606} formalise l'architecture EHR à deux niveaux (modèle de référence et archétypes). ISO 13608 \cite{iso_13608} couvre la sécurité des communications en santé. ISO 27001 \cite{iso_27001} structure le système de management de la sécurité de l'information. ISO 27799 \cite{iso_27799} adapte ISO 27002 aux spécificités santé. Une mise en conformité formelle ferait partie du chantier d'industrialisation.

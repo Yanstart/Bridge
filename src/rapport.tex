@@ -1,0 +1,107 @@
+% =====================================================================
+% rapport.tex - Rapport academique TS6
+% Projet IoT Edge Bridge - Noel Junior Yando Fotso - EPHEC 2025-2026
+% Compilation : latexmk -xelatex -shell-escape rapport.tex
+% =====================================================================
+\documentclass[10pt,a4paper,french,twoside=false,open=any]{scrreprt}
+
+\input{bridge-preamble.tex}
+\addbibresource{references.bib}
+
+% --- Mode compact pour le rapport (cible 15 pages) -------------------
+% Marges serrees, parskip reduit, chapitres sans saut de page,
+% titres compactes, espacement reduit autour des floats.
+\geometry{a4paper, margin=1.6cm, headheight=14pt}
+
+\setlength{\parskip}{0.4em plus 0.1em minus 0.05em}
+\setlength{\parindent}{0pt}
+
+% Reduit l'espace avant et apres les chapitres et sections
+\RedeclareSectionCommand[
+  beforeskip=-1.5em,
+  afterskip=0.6em,
+  font=\Large\bfseries\color{bridgeblue}
+]{chapter}
+
+\RedeclareSectionCommand[
+  beforeskip=0.8em plus 0.1em minus 0.1em,
+  afterskip=0.4em,
+  font=\large\bfseries\color{bridgeblue}
+]{section}
+
+\RedeclareSectionCommand[
+  beforeskip=0.6em plus 0.1em minus 0.1em,
+  afterskip=0.3em,
+  font=\normalsize\bfseries\color{bridgeblue}
+]{subsection}
+
+% Pas de saut de page du tout : les chapitres s'enchainent
+\let\cleardoublepage\relax
+\let\clearpage\relax
+\renewcommand{\chapterpagestyle}{plain}
+
+% Espace reduit autour des tableaux et figures
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{4pt}
+
+% Listes plus compactes
+\setlist{itemsep=1pt, parsep=1pt, topsep=2pt, partopsep=0pt}
+
+% Tableaux plus serres pour le mode compact
+\renewcommand{\arraystretch}{1.05}
+
+% Force la fonte des tableaux plus petite
+\usepackage{etoolbox}
+\AtBeginEnvironment{tabular}{\footnotesize}
+\AtBeginEnvironment{tabularx}{\footnotesize}
+
+% Bibliographie plus compacte
+\renewcommand*{\bibfont}{\footnotesize}
+
+
+% --- Metadonnees -----------------------------------------------------
+\title{Passerelle d'Interop\'erabilit\'e Edge (IoT Bridge)\\
+       pour l'int\'egration de dispositifs m\'edicaux Legacy au BIHR}
+\subtitle{Rapport --- Technologies de la Sant\'e (TS6)}
+\author{No\"el Junior Yando Fotso\\
+        \small Encadrant : Matthieu OLIVIERS\\
+        \small EPHEC Brussels}
+\date{05/05/2026}
+
+% =====================================================================
+\begin{document}
+
+% --- En-tete compact (one-column, pas de page de titre dediee) -------
+\noindent
+{\color{bridgeblue}\LARGE\bfseries Passerelle d'Interop\'erabilit\'e Edge (IoT Bridge)}\par
+\vspace{2pt}
+{\color{bridgeteal}\large pour l'int\'egration de dispositifs m\'edicaux Legacy au BIHR}\par
+\vspace{6pt}
+{\small Rapport, TS6 Technologies de la Sant\'e, EPHEC Brussels.\quad
+ \textbf{Auteur} : No\"el Junior Yando Fotso \quad
+ \textbf{Encadrant} : Matthieu OLIVIERS \quad
+ \textbf{Date} : 05/05/2026}\par
+\vspace{0.4em}\hrule height 0.6pt\vspace{0.6em}
+
+% Pas de TOC pour atteindre 15 pages. Le rapport reste navigable via les
+% titres de chapitre et les renvois croisés. La structure en 7 chapitres
+% est annoncee dans l'introduction.
+
+% --- Corps -----------------------------------------------------------
+\input{rapport/00-introduction.tex}
+\input{rapport/ch1-ehealth.tex}
+\input{rapport/ch2-architecture.tex}
+\input{rapport/ch3-standards.tex}
+\input{rapport/ch4-reseau.tex}
+\input{rapport/ch5-capteurs.tex}
+\input{rapport/ch6-deploiement.tex}
+\input{rapport/ch7-ethique-securite.tex}
+\input{rapport/99-conclusion.tex}
+\input{rapport/AA-annexes.tex}
+
+% --- Bibliographie ---------------------------------------------------
+\printbibliography
+
+\end{document}

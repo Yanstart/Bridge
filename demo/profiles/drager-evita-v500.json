@@ -1,0 +1,62 @@
+{
+  "id": "drager-evita-v500",
+  "name": "Drager Evita V500",
+  "enabled": true,
+  "channel": {
+    "type": "serial_tcp",
+    "host": "sim-drager",
+    "port": 6100,
+    "baudrate": 9600,
+    "bits": "8E1"
+  },
+  "parser": {
+    "type": "medibus_ascii",
+    "encoding": "ascii"
+  },
+  "mapping": {
+    "fields": [
+      {
+        "source_path": "MEDIBUS[FIO2]/value",
+        "loinc_code": "19994-3",
+        "loinc_display": "Oxygen/Inspired gas setting",
+        "unit": "%",
+        "ucum_code": "%",
+        "plausibility": { "min": 21, "max": 100 }
+      },
+      {
+        "source_path": "MEDIBUS[PEEP]/value",
+        "loinc_code": "20077-4",
+        "loinc_display": "Positive end expiratory pressure setting",
+        "unit": "cmH2O",
+        "ucum_code": "cm[H2O]",
+        "plausibility": { "min": 0, "max": 30 }
+      },
+      {
+        "source_path": "MEDIBUS[VT]/value",
+        "loinc_code": "76530-3",
+        "loinc_display": "Tidal volume setting",
+        "unit": "mL",
+        "ucum_code": "mL",
+        "plausibility": { "min": 50, "max": 1500 }
+      },
+      {
+        "source_path": "MEDIBUS[RR]/value",
+        "loinc_code": "9279-1",
+        "loinc_display": "Respiratory rate",
+        "unit": "bpm",
+        "ucum_code": "/min",
+        "plausibility": { "min": 4, "max": 60 }
+      }
+    ]
+  },
+  "destination": {
+    "type": "fhir_hapi",
+    "url": "http://hapi:8080/fhir",
+    "timeout_seconds": 10.0
+  },
+  "device_metadata": {
+    "manufacturer": "Drager",
+    "model_number": "Evita Infinity V500",
+    "serial_number": "DEMO-EVITA-001"
+  }
+}

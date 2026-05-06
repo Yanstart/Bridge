@@ -1,0 +1,16 @@
+# =====================================================================
+# Plugin exemple : capteur de temperature corporelle (CSV)
+# Demontre l'extensibilite du bridge sans modification du coeur.
+# =====================================================================
+
+[plugin]
+name = "example-temperature"
+version = "0.1.0"
+layer = "parser"
+description = "Parser CSV pour capteur de temperature corporelle (LOINC 8310-5)."
+
+[loinc]
+codes = ["8310-5"]
+
+[entrypoints]
+module = "parser_temperature_csv"

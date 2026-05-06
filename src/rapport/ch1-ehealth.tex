@@ -1,0 +1,78 @@
+% =====================================================================
+% Chapitre 1 : Introduction a l'e-health et a la sante connectee
+% =====================================================================
+\chapter{Introduction à l'e-health et à la santé connectée}
+\label{ch:ehealth}
+
+Ce chapitre pose les définitions, situe la stratégie nationale eSanté, expose le verrou Legacy et justifie HL7 FHIR R4 comme standard pivot.
+
+\section{Définition et domaines d'application}
+\label{sec:ehealth-definition}
+
+L'e-health désigne les technologies numériques médicales (apps mobiles, logiciels cliniques, capteurs, wearables) qui soutiennent diagnostic, monitoring, traitement et prévention. Le KCE caractérise ce périmètre dans son rapport sur le DPI hospitalier \cite{kce_362_dpi}. L'OMS structure le champ par sa \emph{Classification of Digital Health Interventions v2.0} \cite{oms_dhi_2023} : catégorie 1 \emph{pour les patients} (auto-monitoring), catégorie 2 \emph{pour les prestataires} (téléconsultation, transmission diagnostique, aide à la décision), catégorie 3 \emph{pour les gestionnaires} (logistique, registres).
+
+\begin{bridgeinfo}[Positionnement de notre projet]
+La passerelle relève sans ambiguïté de la catégorie 2 de l'OMS, sous-classes \emph{transmission of diagnostic data} et \emph{remote patient monitoring}. Elle s'adresse aux prestataires (cliniciens, techniciens biomédicaux, équipes IT), pas au patient. Elle ne porte pas d'interface clinique : son rôle est d'alimenter le DPI et le BIHR à partir d'équipements existants.
+\end{bridgeinfo}
+
+\section{Stratégie e-santé belge et plan eSanté 2025-2027}
+\label{sec:ehealth-belge}
+
+Le \emph{Plan eSanté 2025-2027} érige le BIHR en colonne vertébrale de la santé numérique belge \cite{plan_esante_2025_2027}. L'INAMI assume la responsabilité institutionnelle. Le service eHealth.fgov.be opère les briques transverses : authentification eID, services ETEE, eHealthBox, MyCareNet, horodatage \cite{ehealth_services_base}. Le BIHR vise une vue unique accessible aux soignants autorisés via relation thérapeutique vérifiée \cite{bihr_overview}. MetaHub fédère les hubs régionaux (RSW, ABRUMET, CoZo) et expose un index national des documents de santé \cite{metahub_overview}. La passerelle alimente le DPI hospitalier, qui publie ensuite via les hubs et MetaHub vers le BIHR.
+
+\section{Problématique du matériel en exploitation (Legacy)}
+\label{sec:ehealth-legacy}
+
+Le parc Legacy est un goulet structurel. Un dispositif critique a une durée de vie de 15 à 20 ans, alors que les standards évoluent tous les 3 à 5 ans. Un moniteur acquis en 2008 a été conçu à l'époque de RS-232 et Bluetooth Classic ; la stratégie actuelle s'appuie sur FHIR R4 et OAuth 2.0. Le règlement MDR 2017/745 prévoit qu'une modification significative de la conception ou de la destination entraîne une nouvelle évaluation et la perte du marquage CE \cite{mdr_2017_745}. Ajouter une connectivité native suppose collaboration du fabricant, révision du dossier technique et nouvelle certification : coût et délai prohibitifs pour des centaines d'équipements.
+
+\begin{bridgewarn}[Le paradoxe du \emph{Locked Config}]
+Beaucoup d'équipements actifs s'appuient encore sur RS-232, RS-485 ou Bluetooth Classic, standards de leur époque (2005 à 2015). Ils tournent souvent sur des OS embarqués figés (Windows XP Embedded, Windows 7 Embedded), gelés par le fabricant pour garantir la sécurité du patient et préserver la validation logicielle. Mettre à jour l'OS reviendrait à modifier le dispositif, donc à perdre la certification.
+\end{bridgewarn}
+
+\section{Constat de maturité numérique en Belgique}
+\label{sec:ehealth-maturite}
+
+Selon les modèles de maturité numérique hospitalière comme HIMSS EMRAM, peu d'établissements belges atteignent à ce jour le stade d'intégration automatique des dispositifs médicaux dans le parcours de soin. Le KCE Report 362 \cite{kce_362_dpi} confirme cette inertie sans fournir de chiffre consolidé. Le déficit est multifactoriel : MDR ralentit les évolutions, l'absence de format universel impose des intégrations point à point, le coût d'un parc neuf est non finançable à court terme, les compétences d'intégration biomédicale sont rares.
+
+\section{Avantages attendus de l'intégration automatisée}
+\label{sec:avantages-attendus}
+
+L'intégration automatique des dispositifs médicaux apporte quatre bénéfices documentés par l'OMS \cite{oms_dhi_2023}.
+
+\begin{table}[h]
+  \centering
+  \caption{Bénéfices attendus.}
+  \label{tab:benefices}
+  \bridgezebra
+  \begin{tabular}{p{4.0cm} p{10.5cm}}
+    \toprule
+    \bridgeheader Bénéfice & Effet attendu \\
+    \midrule
+    Qualité des soins & Dossier patient complet, traçabilité des mesures \\
+    Gain de temps soignant & Suppression de la saisie manuelle au lit \\
+    Médecine prédictive & Données denses exploitables par modèles d'aide à la décision \\
+    Réduction des coûts & Évite le remplacement du parc Legacy, baisse des erreurs de saisie \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Choix de HL7 FHIR R4 comme standard pivot}
+\label{sec:ehealth-fhir}
+
+HL7 FHIR R4 (HL7 International, 2019) est le standard retenu \cite{hl7_fhir_r4}. Conçu pour l'API REST, il expose un modèle granulaire par ressources (\texttt{Patient}, \texttt{Device}, \texttt{Observation}, \texttt{DiagnosticReport}) et utilise JSON nativement. Cette granularité contraste avec les messages monolithiques de HL7 v2 et facilite l'agrégation différenciée dans le BIHR. FHIR R4 sera le socle du futur \emph{European Health Data Space} (EHDS), s'inscrit dans la continuité de HL7 v2 et CDA, et accepte des profils nationaux. La passerelle adopte FHIR comme sortie principale, avec option HL7 v2 (DPI Legacy) et KMEHR (hubs régionaux).
+
+\section{Notre proposition : un middleware d'intégration}
+\label{sec:ehealth-proposition}
+
+La passerelle IoT Edge Bridge est un middleware Python configurable, déployé en bord de réseau. Elle absorbe quatre canaux d'entrée : TCP brut (moniteurs IP), BLE (dispositifs portables), fichiers XML (spiromètres, ECG), trames série RS-232 (pompes, ventilateurs). Elle émet en FHIR R4 vers HAPI ou le DPI, avec option HL7 v2 over MLLP. La capture est passive : ni firmware ni câblage modifiés. La passerelle contribue indirectement à l'empowerment du patient : les données vitales captées et publiées au DPI alimentent le portail MaSanté.be, qui rend visible au patient ses propres mesures.
+
+\begin{bridgekey}[Statut de la passerelle]
+Le middleware est un \textbf{outil d'intégration IT}, pas un dispositif médical. Il consomme des sorties existantes et les normalise. Le fabricant reste responsable du dispositif, l'éditeur de la passerelle est responsable du mapping, l'hôpital est responsable du traitement. La passerelle est régie par le RGPD et l'ISO 27001, sans procédure MDR de classe IIa.
+\end{bridgekey}
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/fig-chaos-ordre.tex}}
+  \caption{Vision narrative du projet : du chaos des dispositifs Legacy vers un continuum BIHR uniformisé.}
+  \label{fig:rapport-vision}
+\end{figure}

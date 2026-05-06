@@ -1,0 +1,86 @@
+% =====================================================================
+% figures/fig-processus-metier.tex
+% Diagramme de processus metier BPMN simplifie : source -> bridge -> DPI -> soignant.
+% Swimlane horizontale a 4 lignes.
+% =====================================================================
+\begin{tikzpicture}[
+  font=\sffamily,
+  every node/.style={font=\footnotesize\sffamily},
+  >={Stealth[length=2.5mm]},
+  thick,
+  source/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgealert, fill=bridgealert!10, text=bridgealert,
+    minimum width=2.4cm, minimum height=0.8cm, align=center,
+    inner sep=2pt, font=\footnotesize\sffamily
+  },
+  bridge/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgeblue, fill=bridgeblue!10, text=bridgeblue,
+    minimum width=2.4cm, minimum height=0.8cm, align=center,
+    inner sep=2pt, font=\footnotesize\sffamily
+  },
+  dpi/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgeteal, fill=bridgeteal!12, text=bridgeteal,
+    minimum width=2.4cm, minimum height=0.8cm, align=center,
+    inner sep=2pt, font=\footnotesize\sffamily
+  },
+  user/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgegreen, fill=bridgegreen!12, text=bridgegreen,
+    minimum width=2.4cm, minimum height=0.8cm, align=center,
+    inner sep=2pt, font=\footnotesize\sffamily
+  },
+  decision/.style={
+    diamond, draw=bridgeblue, fill=bridgeblue!8, text=bridgeblue,
+    minimum width=1.4cm, minimum height=1.0cm, inner sep=1pt,
+    font=\scriptsize\sffamily, aspect=1.6
+  },
+  flow/.style={-{Stealth[length=3mm]}, thick, draw=bridgeblue!80},
+  errflow/.style={-{Stealth[length=3mm]}, thick, dashed, draw=bridgealert}
+]
+
+% --- Lignes (swim lanes) ---------------------------------------------
+\foreach \y/\name in {3.6/Source, 2.4/Bridge, 1.2/DPI, 0/Soignant}
+  \node[anchor=east, font=\footnotesize\bfseries\sffamily, color=bridgegray]
+    at (-0.2, \y) {\name};
+
+% Lignes de separation
+\foreach \y in {3.0, 1.8, 0.6}
+  \draw[bridgegray!30, dashed] (-0.1,\y) -- (16.5,\y);
+
+% --- Bandeau Source --------------------------------------------------
+\node[source] (s1) at (1.2, 3.6) {Dispositif IoT\\ou logiciel Legacy};
+\node[font=\scriptsize\itshape, color=bridgegray]
+  at (s1.south)[anchor=north, yshift=-1pt] {emet trame};
+
+% --- Bandeau Bridge --------------------------------------------------
+\node[bridge] (b1) at (4.0, 2.4) {Capture\\Adapter};
+\node[bridge] (b2) at (6.4, 2.4) {Parsing\\Mapping};
+\node[decision] (d1) at (8.8, 2.4) {Valide ?};
+\node[bridge] (b3) at (11.2, 2.4) {Transport\\mTLS};
+
+% Quarantaine en cas d'erreur
+\node[bridge, fill=bridgealert!10, draw=bridgealert, text=bridgealert]
+  (q) at (8.8, 3.6) {Quarantaine\\+ alerte};
+
+% --- Bandeau DPI -----------------------------------------------------
+\node[dpi] (dpi1) at (13.6, 1.2) {DPI hospitalier\\persiste FHIR};
+
+% --- Bandeau Soignant ------------------------------------------------
+\node[user] (u1) at (15.6, 0) {Consultation\\au DPI};
+
+% --- Fleches du flux nominal -----------------------------------------
+\draw[flow] (s1.south) -- (b1.north -| s1.south);
+\draw[flow] (s1.south) |- (b1.west);
+\draw[flow] (b1.east) -- (b2.west);
+\draw[flow] (b2.east) -- (d1.west);
+\draw[flow] (d1.east) -- (b3.west) node[midway, above, font=\scriptsize] {oui};
+\draw[flow] (b3.south) |- (dpi1.west);
+\draw[flow] (dpi1.south) |- (u1.west);
+
+% --- Fleche d'erreur -------------------------------------------------
+\draw[errflow] (d1.north) -- (q.south) node[midway, right, font=\scriptsize, color=bridgealert] {non};
+
+\end{tikzpicture}

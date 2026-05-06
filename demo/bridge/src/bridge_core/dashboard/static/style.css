@@ -1,0 +1,378 @@
+/* =====================================================================
+   IoT Edge Bridge - dashboard
+   Charte alignee sur les livrables LaTeX (palette projet).
+   Pas de framework JS lourd, pas d'emojis, contrastes WCAG AA.
+   ===================================================================== */
+
+:root {
+  --bridgeblue: #1F3A68;
+  --bridgeteal: #0FA4AF;
+  --bridgegray: #4A4A4A;
+  --bridgealert: #C62828;
+  --bridgesoft: #F2F6FB;
+  --bridgeinfo: #E3F4F4;
+  --bridgewarn-amber: #F59E0B;
+  --bridgegreen: #2E7D32;
+  --bridgegreensoft: #E8F5E9;
+  --bridgewhite: #ffffff;
+  --bridge-shadow: 0 1px 2px rgba(31, 58, 104, 0.06), 0 4px 16px rgba(31, 58, 104, 0.04);
+  --radius: 6px;
+}
+
+* { box-sizing: border-box; }
+html { font-size: 14px; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  color: #222;
+  background: #f7f9fc;
+  line-height: 1.45;
+}
+code { font-family: "Fira Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.92em; }
+a { color: var(--bridgeblue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3 { color: var(--bridgeblue); margin: 0; }
+
+/* --- Topbar ---------------------------------------------------------- */
+.topbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bridgeblue);
+  color: var(--bridgewhite);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar a { color: rgba(255,255,255,0.85); }
+.topbar a:hover { color: var(--bridgewhite); text-decoration: none; }
+.brand { display: flex; flex-direction: column; }
+.logo-mark { font-weight: 700; font-size: 1.05rem; }
+.brand-sub { font-size: 0.78rem; color: rgba(255,255,255,0.7); }
+.topnav { display: flex; gap: 1.25rem; justify-content: center; }
+.topnav a {
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+}
+.topnav a.active { background: rgba(255,255,255,0.12); color: var(--bridgewhite); }
+.topbar-right { display: flex; gap: 0.5rem; align-items: center; }
+.ws-indicator {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.15);
+}
+.ws-open { background: rgba(46, 125, 50, 0.5); }
+.ws-lost { background: rgba(198, 40, 40, 0.6); }
+
+/* --- Layout ---------------------------------------------------------- */
+.content {
+  max-width: 1280px;
+  margin: 1.5rem auto;
+  padding: 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.page-head { margin-bottom: 0.5rem; }
+.muted { color: var(--bridgegray); }
+.empty { color: var(--bridgegray); padding: 1rem; text-align: center; }
+
+/* --- KPI bar --------------------------------------------------------- */
+.kpi-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.kpi {
+  background: var(--bridgewhite);
+  border: 1px solid #e6ecf5;
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--bridge-shadow);
+}
+.kpi-label { display: block; font-size: 0.78rem; color: var(--bridgegray); text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi-value { display: block; font-size: 1.85rem; font-weight: 700; color: var(--bridgeblue); margin: 0.2rem 0; }
+.kpi-sub { font-size: 0.82rem; color: var(--bridgegray); display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap; }
+
+/* --- Panels ---------------------------------------------------------- */
+.panel {
+  background: var(--bridgewhite);
+  border: 1px solid #e6ecf5;
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--bridge-shadow);
+}
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #f0f3f8;
+  padding-bottom: 0.5rem;
+}
+.panel-head h2 { font-size: 1.05rem; }
+.panel-hint { color: var(--bridgegray); font-size: 0.85rem; }
+
+/* --- Devices grid ---------------------------------------------------- */
+.devices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.85rem;
+}
+.device-card {
+  display: block;
+  background: var(--bridgewhite);
+  border: 1px solid #e6ecf5;
+  border-left: 4px solid var(--bridgegray);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  color: inherit;
+  transition: transform 80ms ease, box-shadow 120ms ease;
+}
+.device-card:hover { transform: translateY(-1px); box-shadow: var(--bridge-shadow); text-decoration: none; }
+.device-green  { border-left-color: var(--bridgegreen); }
+.device-amber  { border-left-color: var(--bridgewarn-amber); }
+.device-red    { border-left-color: var(--bridgealert); }
+.device-gray   { border-left-color: var(--bridgegray); }
+
+.device-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+}
+.device-name { font-size: 0.95rem; font-weight: 600; flex: 1; color: var(--bridgeblue); }
+.device-status-label { font-size: 0.75rem; color: var(--bridgegray); }
+.device-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 0.8rem;
+  font-size: 0.82rem;
+  margin: 0;
+}
+.device-meta div { display: flex; flex-direction: column; }
+.device-meta dt { color: var(--bridgegray); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.device-meta dd { margin: 0; }
+.device-context {
+  margin: 0.6rem 0 0;
+  font-size: 0.82rem;
+  color: var(--bridgewarn-amber);
+  font-style: italic;
+}
+
+/* --- Pastilles ------------------------------------------------------- */
+.dot {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--bridgegray);
+  flex: 0 0 auto;
+}
+.dot-large { width: 1.2rem; height: 1.2rem; }
+.dot-green  { background: var(--bridgegreen); }
+.dot-amber  { background: var(--bridgewarn-amber); }
+.dot-red    { background: var(--bridgealert); }
+.dot-gray   { background: var(--bridgegray); }
+
+/* --- Badges ---------------------------------------------------------- */
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: var(--bridgegray);
+  font-weight: 500;
+}
+.badge-green { background: var(--bridgegreensoft); color: var(--bridgegreen); }
+.badge-amber { background: #fff4e0; color: #b45309; }
+.badge-red   { background: #fdecec; color: var(--bridgealert); }
+.badge-gray  { background: #eceff3; color: var(--bridgegray); }
+.badge-info  { background: var(--bridgeinfo); color: var(--bridgeteal); }
+.badge-mini { font-size: 0.65rem; padding: 0.1rem 0.45rem; }
+
+/* --- Events ---------------------------------------------------------- */
+.events-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.event {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  background: #fafcff;
+}
+.event-info  { border-left: 3px solid var(--bridgegreen); }
+.event-warn  { border-left: 3px solid var(--bridgewarn-amber); }
+.event-error { border-left: 3px solid var(--bridgealert); }
+.event-time { font-variant-numeric: tabular-nums; color: var(--bridgegray); font-size: 0.78rem; }
+.event-kind {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bridgeblue);
+  font-weight: 600;
+}
+.event-device { color: inherit; }
+.event-message { color: var(--bridgegray); }
+
+/* --- Tables ---------------------------------------------------------- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table thead th {
+  background: var(--bridgeblue);
+  color: var(--bridgewhite);
+  text-align: left;
+  font-weight: 600;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.82rem;
+}
+.data-table tbody td {
+  padding: 0.4rem 0.65rem;
+  border-bottom: 1px solid #f0f3f8;
+  font-size: 0.85rem;
+}
+.data-table tbody tr:nth-child(even) { background: var(--bridgesoft); }
+
+/* --- Detail page ----------------------------------------------------- */
+.breadcrumb { font-size: 0.85rem; color: var(--bridgegray); }
+.device-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.device-header h1 { font-size: 1.4rem; }
+.device-status-block {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--bridgesoft);
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+}
+.device-status-label-large { font-weight: 600; }
+.device-context-large { margin: 0; font-size: 0.85rem; color: var(--bridgewarn-amber); font-style: italic; }
+.device-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1rem;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 0.9rem;
+  margin: 0;
+}
+.kv dt { color: var(--bridgegray); font-size: 0.8rem; }
+.kv dd { margin: 0; font-size: 0.88rem; }
+
+.config-block h3 { font-size: 0.95rem; margin-top: 1rem; }
+
+/* --- Forms / boutons ------------------------------------------------- */
+.filters {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  background: var(--bridgewhite);
+  padding: 0.85rem;
+  border: 1px solid #e6ecf5;
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.filters label { display: flex; flex-direction: column; font-size: 0.78rem; color: var(--bridgegray); }
+.filters select { padding: 0.35rem 0.45rem; border: 1px solid #d0d6df; border-radius: var(--radius); font-size: 0.85rem; }
+.btn {
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-primary { background: var(--bridgeteal); color: var(--bridgewhite); }
+.btn-primary:hover { background: #0d8b95; text-decoration: none; }
+.btn-secondary { background: var(--bridgewhite); color: var(--bridgeblue); border-color: #d0d6df; }
+.btn-secondary:hover { background: #f1f4f9; text-decoration: none; }
+
+/* --- Plugins --------------------------------------------------------- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.plugin-card {
+  background: var(--bridgewhite);
+  border: 1px solid #e6ecf5;
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--bridge-shadow);
+}
+.plugin-card-head { display: flex; gap: 0.45rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.plugin-card-head h2 { font-size: 1rem; flex: 1; }
+.loinc-list { font-size: 0.85rem; color: var(--bridgegray); margin-top: 0.5rem; }
+.loinc-list code { background: var(--bridgesoft); padding: 0.05rem 0.35rem; border-radius: 4px; margin: 0 0.15rem; }
+.plugin-error { background: #fdecec; color: var(--bridgealert); padding: 0.5rem 0.65rem; border-radius: var(--radius); margin-top: 0.6rem; font-size: 0.82rem; }
+.plugin-meta { font-size: 0.78rem; margin-top: 0.5rem; }
+
+/* --- Footer legend --------------------------------------------------- */
+.legend {
+  max-width: 1280px;
+  margin: 1rem auto 2rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bridgewhite);
+  border: 1px solid #e6ecf5;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  flex-wrap: wrap;
+}
+.legend-title { color: var(--bridgegray); font-weight: 600; }
+.legend-info { color: var(--bridgegray); margin-left: auto; }
+
+/* --- Toasts ---------------------------------------------------------- */
+#toast-host {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  z-index: 50;
+}
+.toast {
+  background: var(--bridgewhite);
+  border-left: 4px solid var(--bridgegray);
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius);
+  box-shadow: var(--bridge-shadow);
+  font-size: 0.82rem;
+  max-width: 360px;
+}
+.toast-info { border-left-color: var(--bridgegreen); }
+.toast-warn { border-left-color: var(--bridgewarn-amber); }
+.toast-error { border-left-color: var(--bridgealert); }
+
+/* --- Responsive ------------------------------------------------------ */
+@media (max-width: 700px) {
+  .topbar { grid-template-columns: 1fr; gap: 0.6rem; }
+  .topnav { justify-content: flex-start; flex-wrap: wrap; }
+  .device-meta { grid-template-columns: 1fr; }
+}

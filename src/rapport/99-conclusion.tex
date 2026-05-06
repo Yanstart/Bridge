@@ -1,0 +1,30 @@
+% =====================================================================
+% Conclusion : synthese a trois niveaux (technique, systemique, prospectif)
+% =====================================================================
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+\label{ch:conclusion}
+
+Ce travail articule grille de lecture théorique (sept chapitres du cours TS6) et démonstration pratique (passerelle Edge dockerisée transformant quatre flux dispositifs en FHIR R4). La synthèse s'articule en trois niveaux.
+
+\section*{Niveau technique}
+
+Une passerelle Edge multi-protocoles transforme un parc Legacy en source FHIR R4 native, sans modification matérielle. L'architecture en quatre couches (Adapter, Parser, Mapper, Transport) est chargée dynamiquement à partir de profils JSON. Chaque couche est un point d'extension : ajouter un dispositif consiste à publier un profil déclaratif et, si besoin, un parseur Python en plugin. Cette séparation déclarative entre canal, langue et mapping est la traduction directe des concepts d'interopérabilité technique, syntaxique et sémantique du chapitre~\ref{ch:standards}.
+
+La démonstration prouve la faisabilité sur quatre canaux : TCP HL7 v2 over MLLP (moniteurs IP), MQTT (BLE relayés), SCP-ECG déposés (ambulatoire), RS-232 MEDIBUS (Dräger). HAPI FHIR R4 reçoit des Bundles transactionnels conformes. Le dashboard supervise les flux sans exposer de donnée patient. Le mTLS sortant et la segmentation réseau (chapitre~\ref{ch:reseau}) bouclent la chaîne de confiance.
+
+\section*{Niveau systémique}
+
+La solution adresse un goulet d'étranglement national identifié par le Plan eSanté 2025-2027 : l'intégration automatique des dispositifs Legacy au DPI et au BIHR \cite{plan_esante_2025_2027,bihr_overview}. Les paramètres vitaux remontent encore par re-saisie ou exports manuels. Le BIHR ne peut fédérer que ce que les hôpitaux poussent. La passerelle ferme la boucle entre la mesure et le partage régional, et accélère le passage aux stades supérieurs de maturité numérique.
+
+L'argument médico-économique est central : éviter de remplacer un parc valorisé sur 15 à 20 ans alors que les standards évoluent tous les 3 à 5 ans. La capture passive préserve le marquage CE conformément à l'esprit du Règlement (UE) 2017/745 \cite{mdr_2017_745}. Le statut non-DM revendiqué simplifie la chaîne de responsabilité : hôpital responsable de traitement, éditeur sous-traitant RGPD, fabricant amont responsable clinique du dispositif.
+
+\section*{Niveau prospectif}
+
+Trois évolutions dessinent l'avenir. F1 ouvre la passerelle à une communauté de plugins de traduction sur le modèle HACS (Home Assistant) et npm. Un fabricant ou hôpital qui rencontre un dispositif non couvert publie son plugin. F2 intègre une détection d'anomalies en bord : modèle léger entraîné hors-ligne, inférence ONNX au fil de l'eau, pré-flagging des valeurs aberrantes. F3 projette la solution dans l'European Health Data Space pour la mobilité transfrontalière (cf. chapitre 14 du cahier des charges).
+
+L'effet de catalogue communautaire est le levier principal : aucun éditeur seul ne peut couvrir la diversité mondiale des dispositifs médicaux. Les conditions d'échelle sont une gouvernance ouverte, des mappings LOINC validés par revue de pairs, et des plugins signés par le RSSI hospitalier. La passerelle joue alors le rôle d'agrégateur de profils, à la manière des distributions Linux.
+
+\section*{Mot final}
+
+Le travail confirme que l'interopérabilité en santé n'est pas un obstacle technique mais une décision d'architecture. Le code, le cahier des charges et la démonstration sont remis au jury comme un ensemble cohérent.

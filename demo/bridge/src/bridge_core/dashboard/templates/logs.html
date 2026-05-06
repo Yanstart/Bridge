@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Logs - IoT Edge Bridge{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <h1>Logs operationnels</h1>
+  <p class="muted">Aucune valeur clinique patient n'apparait dans cette page.</p>
+</header>
+
+<form class="filters" method="get" action="/logs">
+  <label>Equipement
+    <select name="device">
+      <option value="">tous</option>
+      {% for d in devices %}
+        <option value="{{ d }}" {% if d == selected_device %}selected{% endif %}>{{ d }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Niveau
+    <select name="level">
+      <option value="">tous</option>
+      <option value="info" {% if selected_level == 'info' %}selected{% endif %}>info</option>
+      <option value="warn" {% if selected_level == 'warn' %}selected{% endif %}>warn</option>
+      <option value="error" {% if selected_level == 'error' %}selected{% endif %}>error</option>
+    </select>
+  </label>
+  <button type="submit" class="btn btn-primary">Filtrer</button>
+  <a class="btn btn-secondary" href="/logs">Reset</a>
+</form>
+
+{% include "partials/events_list.html" %}
+{% endblock %}

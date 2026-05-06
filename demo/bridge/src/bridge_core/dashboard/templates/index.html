@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Vue d'ensemble - IoT Edge Bridge{% endblock %}
+
+{% block content %}
+<section class="kpi-bar">
+  <article class="kpi">
+    <span class="kpi-label">Equipements</span>
+    <span class="kpi-value">{{ counters.devices_total }}</span>
+    <span class="kpi-sub">
+      <span class="dot dot-green"></span>{{ counters.devices_connected }}
+      <span class="dot dot-amber"></span>{{ counters.devices_anomaly }}
+      <span class="dot dot-red"></span>{{ counters.devices_disconnected }}
+    </span>
+  </article>
+  <article class="kpi">
+    <span class="kpi-label">Messages traites</span>
+    <span class="kpi-value">{{ counters.messages_total }}</span>
+    <span class="kpi-sub">depuis le demarrage</span>
+  </article>
+  <article class="kpi">
+    <span class="kpi-label">Quarantaine</span>
+    <span class="kpi-value">{{ counters.messages_quarantine }}</span>
+    <span class="kpi-sub">messages en plage non valide</span>
+  </article>
+  <article class="kpi">
+    <span class="kpi-label">Plugins</span>
+    <span class="kpi-value">-</span>
+    <span class="kpi-sub"><a href="/plugins">voir le catalogue</a></span>
+  </article>
+</section>
+
+<section class="panel">
+  <header class="panel-head">
+    <h2>Equipements</h2>
+    <span class="panel-hint">Cliquer sur une carte pour le detail.</span>
+  </header>
+  <div
+    id="devices-grid"
+    class="devices-grid"
+    data-hx-refresh-on-event="true"
+    hx-get="/fragments/devices-grid"
+    hx-trigger="refresh, every 5s"
+    hx-swap="innerHTML">
+    {% include "partials/devices_grid.html" %}
+  </div>
+</section>
+
+<section class="panel">
+  <header class="panel-head">
+    <h2>Activite recente</h2>
+    <span class="panel-hint">Evenements techniques uniquement, sans donnee patient.</span>
+  </header>
+  <div
+    id="events-list"
+    data-hx-refresh-on-event="true"
+    hx-get="/fragments/recent-events"
+    hx-trigger="refresh, every 5s"
+    hx-swap="innerHTML">
+    {% include "partials/events_list.html" %}
+  </div>
+</section>
+{% endblock %}

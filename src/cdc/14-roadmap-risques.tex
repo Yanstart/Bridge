@@ -1,0 +1,88 @@
+\chapter{Roadmap et risques projet}
+\label{ch:roadmap-risques}
+
+La roadmap projette les évolutions du middleware au-delà du périmètre de la démo. La cartographie des risques projet liste les obstacles à anticiper pendant la phase de réalisation, distincts des risques techniques traités au chapitre~\ref{ch:securite-conformite}.
+
+\section{Roadmap fonctionnelle}
+\label{sec:roadmap-fonctionnelle}
+
+Trois évolutions majeures structurent l'avenir du middleware. Chacune répond à un besoin identifié pendant la conception et reste compatible avec l'architecture en quatre couches.
+
+\subsection{F1 : plugins de traduction communautaires}
+\label{sec:roadmap-f1}
+
+Le parc d'équipements médicaux mondial est trop vaste pour qu'une seule équipe couvre tous les profils nativement. Chaque fabricant publie ses propres formats, met à jour ses firmwares et ajoute ses propres dialectes. Une approche centralisée n'est pas tenable.
+
+La passerelle expose une API plugin documentée. La communauté écrit ses règles de traduction et les publie dans un registre public. Le modèle s'inspire de HACS (Home Assistant Community Store) pour la gouvernance, de Telegraf pour la séparation entrée/sortie, et de npm pour la distribution. Cette ouverture est verrouillée dès la démo par la mécanique de chargement décrite à la section~\ref{sec:archi-plugins}.
+
+\begin{bridgekey}[Effet attendu de F1]
+La passerelle devient un standard de fait par effet de catalogue. Un fabricant ou un hôpital tiers ajoute son équipement en publiant un plugin. La gouvernance reste ouverte. La revue de code et la qualité du mapping LOINC sont contrôlées par la communauté. Plus le catalogue grandit, plus la valeur du middleware augmente pour les nouveaux entrants.
+\end{bridgekey}
+
+\subsection{F2 : détection d'anomalies en bord}
+\label{sec:roadmap-f2}
+
+Une couche d'inférence légère s'insère entre le Parser et le Mapper. Elle détecte en temps réel des dérives suspectes : artefacts de mesure, valeurs incompatibles avec l'historique du patient, patterns de panne capteur. Le modèle est entraîné hors ligne sur des datasets historisés, puis exporté en ONNX ou TFLite et embarqué dans le conteneur de la passerelle. Cette couche agit comme un garde-fou avant publication FHIR. Elle ne remplace pas le Parser. Elle ajoute une décision pondérée.
+
+\subsection{F3 : fédération européenne EHDS}
+\label{sec:roadmap-f3}
+
+Le règlement européen EHDS (European Health Data Space), publié en 2025, structure l'usage secondaire des données de santé pour la recherche et la mobilité transfrontalière. La passerelle alimente naturellement ce réseau, sous réserve d'un module d'anonymisation conforme. Cette évolution dépend des cas d'usage validés par les autorités belges (APD, AFMPS) et du déploiement effectif des n\oe uds nationaux EHDS.
+
+\section{Roadmap technique}
+\label{sec:roadmap-technique}
+
+Le passage de la démo à un déploiement de production implique des changements sur plusieurs composants. Le tableau ci-dessous trace les écarts à combler.
+
+\bridgezebra
+\begin{longtable}{p{4.5cm}p{4.5cm}p{5.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Élément} & {\color{white}\bfseries Démo actuelle} & {\color{white}\bfseries Cible production} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Élément} & {\color{white}\bfseries Démo actuelle} & {\color{white}\bfseries Cible production} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Authentification dashboard & Aucune & OIDC eHealth ou Keycloak avec MFA \\
+  Transport vers DPI & HAPI FHIR local & Endpoint hospitalier réel avec mTLS \\
+  Persistance & SQLite WAL local & PostgreSQL ou base hospitalière avec réplication \\
+  Plugins & Chargement local & Registre signé et revue communautaire \\
+  Supervision & Dashboard local & Métriques Prometheus et Grafana centralisées \\
+  Monitoring multi-gateways & Hors-scope démo & Orchestration Kubernetes ou SDN \\
+  DICOM imagerie & Hors-scope démo & Adapter DICOM dédié pour modalités d'imagerie \\
+\end{longtable}
+
+\section{Risques projet}
+\label{sec:risques-projet}
+
+Cinq risques majeurs sont identifiés pour la phase de réalisation. Chacun fait l'objet d'une mesure de mitigation actionnable.
+
+\bridgezebra
+\begin{longtable}{p{1.2cm}p{6.5cm}p{2cm}p{4.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries ID} & {\color{white}\bfseries Risque} & {\color{white}\bfseries Probabilité} & {\color{white}\bfseries Mesure de mitigation} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries ID} & {\color{white}\bfseries Risque} & {\color{white}\bfseries Probabilité} & {\color{white}\bfseries Mesure de mitigation} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  R-01 & Échec de compilation des conteneurs simulateurs lors de la démo & Faible & Vidéo enregistrée comme plan B (cf. chapitre~\ref{ch:deploiement}) \\
+  R-02 & Indisponibilité du laptop ou du projecteur le jour de la soutenance & Faible & Backup sur clé USB et second ordinateur de secours \\
+  R-03 & Question jury hors périmètre démo (industrialisation, EHDS, sécurité avancée) & Moyenne & CDC complet permet de répondre par renvoi : roadmap, AIPD esquisse, traçabilité \\
+  R-04 & Découverte tardive d'incompatibilité MEDIBUS réelle vs simulée & Moyenne & Implémentation basée sur la référence open source mdpnp et sur la spec Dräger 9028258 \\
+  R-05 & Retard sur la rédaction du rapport académique (lot L11 à 12 J/H) & Élevée & Démarrage L11 dès la fin du CDC, parallélisation avec le pitch \\
+\end{longtable}
+
+\begin{bridgewarn}[Risque R-05 : retard rapport]
+Le rapport académique de 7 chapitres est le risque projet le plus probable. Le volume rédactionnel est élevé. L'auteur travaille seul. La mitigation est claire. La rédaction démarre dès la livraison du CDC, en parallèle de l'implémentation. Le \texttt{GUIDE\_REDACTION.md} fournit la structure exigée. Chaque chapitre du cours TS6 a sa contrepartie dans le rapport. Cette correspondance accélère la rédaction.
+\end{bridgewarn}

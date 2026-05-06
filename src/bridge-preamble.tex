@@ -1,0 +1,290 @@
+% =====================================================================
+% bridge-preamble.tex
+% Preambule partage des livrables LaTeX du projet IoT Edge Bridge
+% Auteur : Noel Junior Yando Fotso - EPHEC TS6 - 2025-2026
+% Compilation : XeLaTeX + biber (latexmk -xelatex -shell-escape)
+% =====================================================================
+
+% --- Encodage et langue ----------------------------------------------
+\usepackage[utf8]{inputenc}      % LuaTeX/XeTeX-friendly (ignore mais sans erreur)
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% --- Fontes (XeLaTeX) ------------------------------------------------
+% Detection conditionnelle : si XeLaTeX/LuaLaTeX, on essaie Fira Sans / Source Serif Pro,
+% avec fallback automatique sur Latin Modern si la fonte est indisponible.
+\usepackage{ifxetex,ifluatex}
+\newif\ifxetexorluatex
+\ifxetex\xetexorluatextrue\else
+  \ifluatex\xetexorluatextrue\else\xetexorluatexfalse\fi
+\fi
+
+\ifxetexorluatex
+  \usepackage{fontspec}
+  % Source Serif Pro pour le rapport et le CDC ; Fira Sans pour le pitch.
+  % Fallback silencieux sur Latin Modern si la fonte n'est pas installee.
+  \IfFontExistsTF{Source Serif Pro}{%
+    \setmainfont{Source Serif Pro}%
+  }{%
+    \IfFontExistsTF{Source Serif 4}{\setmainfont{Source Serif 4}}{}%
+  }
+  \IfFontExistsTF{Fira Sans}{%
+    \setsansfont{Fira Sans}%
+  }{}
+  \IfFontExistsTF{Fira Mono}{%
+    \setmonofont{Fira Mono}%
+  }{}
+\else
+  % pdfLaTeX fallback : Latin Modern (par defaut, rien a faire).
+\fi
+
+% --- Graphiques et couleurs ------------------------------------------
+\usepackage{graphicx}
+\usepackage[table,dvipsnames,svgnames]{xcolor}
+
+% Palette projet (charte)
+\definecolor{bridgeblue}{HTML}{1F3A68}     % bleu profond, titres et cadres
+\definecolor{bridgeteal}{HTML}{0FA4AF}     % teal d'accent
+\definecolor{bridgegray}{HTML}{4A4A4A}     % gris texte secondaire
+\definecolor{bridgealert}{HTML}{C62828}    % rouge alerte
+\definecolor{bridgesoft}{HTML}{F2F6FB}     % bleu tres pale, fond doux
+\definecolor{bridgeinfo}{HTML}{E3F4F4}     % teal tres pale, info
+\definecolor{bridgewarn}{HTML}{FFF4E5}     % ambre tres pale, attention
+\definecolor{bridgegreen}{HTML}{2E7D32}    % vert validation
+\definecolor{bridgegreensoft}{HTML}{E8F5E9}% vert tres pale
+
+% --- Liens hypertexte ------------------------------------------------
+\usepackage[
+  colorlinks=true,
+  linkcolor=bridgeblue,
+  citecolor=bridgeteal,
+  urlcolor=bridgeteal,
+  pdfborder={0 0 0}
+]{hyperref}
+
+% --- Tableaux et listes ----------------------------------------------
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{makecell}
+\usepackage{enumitem}
+
+% Style global de tableaux : zebrures bleu pale, regle haute teal, regles mid claires
+\setlength{\arrayrulewidth}{0.4pt}
+\renewcommand{\arraystretch}{1.25}
+\arrayrulecolor{bridgeblue!40}
+
+% Commande utilitaire pour activer les zebrures sur un tableau
+% Usage : \begin{table} \bridgezebra ... \begin{tabular}...
+\newcommand{\bridgezebra}{\rowcolors{2}{bridgesoft}{white}}
+
+% Commande pour styliser une ligne d'en-tete (a placer dans la 1re ligne)
+% Usage : \bridgeheader \textbf{Col1} & \textbf{Col2} \\ \midrule
+\newcommand{\bridgeheader}{\rowcolor{bridgeblue!90}\color{white}\bfseries}
+
+% Activation globale des zebrures par defaut sur tous les tableaux suivants.
+% Pour desactiver localement : \rowcolors{1}{}{}
+\rowcolors{2}{bridgesoft}{white}
+
+% Style booktabs renforce avec couleur de regle
+\let\oldtoprule\toprule
+\let\oldmidrule\midrule
+\let\oldbottomrule\bottomrule
+\renewcommand{\toprule}{\arrayrulecolor{bridgeblue}\specialrule{0.7pt}{0pt}{0pt}\arrayrulecolor{bridgeblue!40}}
+\renewcommand{\midrule}{\specialrule{0.4pt}{0pt}{0pt}}
+\renewcommand{\bottomrule}{\arrayrulecolor{bridgeblue}\specialrule{0.7pt}{0pt}{0pt}\arrayrulecolor{bridgeblue!40}}
+
+% Type de colonne avec en-tete bold blanc sur fond bleu
+\newcolumntype{H}{>{\columncolor{bridgeblue}\color{white}\bfseries}l}
+
+% Geometrie raisonnable (sera surchargee par les classes si besoin)
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm, headheight=14pt}
+
+% --- Boites informatives (tcolorbox) ---------------------------------
+\usepackage[most]{tcolorbox}
+\tcbset{
+  bridgebox/.style={
+    enhanced,
+    colback=bridgesoft,
+    colframe=bridgeblue,
+    boxrule=0.4pt,
+    arc=2pt,
+    left=8pt,right=8pt,top=6pt,bottom=6pt,
+    fonttitle=\bfseries\color{white},
+    coltitle=white,
+    colbacktitle=bridgeblue,
+    title filled,
+    breakable
+  },
+  bridgeinfobox/.style={
+    bridgebox,
+    colback=bridgeinfo,
+    colframe=bridgeteal,
+    colbacktitle=bridgeteal
+  },
+  bridgewarnbox/.style={
+    bridgebox,
+    colback=bridgewarn,
+    colframe=orange!80!black,
+    colbacktitle=orange!80!black
+  },
+  bridgekeybox/.style={
+    bridgebox,
+    colback=bridgegreensoft,
+    colframe=bridgegreen,
+    colbacktitle=bridgegreen
+  }
+}
+
+% Macros raccourcies. title={#1} pour proteger les virgules dans le titre.
+\newtcolorbox{bridgenote}[1][Note]{bridgebox, title={#1}}
+\newtcolorbox{bridgeinfo}[1][Information]{bridgeinfobox, title={#1}}
+\newtcolorbox{bridgewarn}[1][Attention]{bridgewarnbox, title={#1}}
+\newtcolorbox{bridgekey}[1][A retenir]{bridgekeybox, title={#1}}
+
+% --- Typographie KOMA-Script ----------------------------------------
+% S'applique uniquement si on est en classe scrreprt/scrartcl/scrbook.
+\makeatletter
+\@ifclassloaded{scrreprt}{%
+  \addtokomafont{disposition}{\color{bridgeblue}}%
+  \addtokomafont{chapter}{\color{bridgeblue}\Huge\bfseries}%
+  \addtokomafont{section}{\color{bridgeblue}}%
+  \addtokomafont{subsection}{\color{bridgeblue}}%
+  \addtokomafont{descriptionlabel}{\color{bridgeblue}\bfseries}%
+  \KOMAoptions{numbers=noenddot, captions=tableheading, headings=optiontoheadandtoc}%
+}{}
+\@ifclassloaded{scrartcl}{%
+  \addtokomafont{disposition}{\color{bridgeblue}}%
+}{}
+\makeatother
+
+% --- Code et listings ------------------------------------------------
+\usepackage{listings}
+
+% Style generique
+\lstdefinestyle{bridgebase}{%
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{bridgeblue}\bfseries,
+  commentstyle=\color{bridgegray}\itshape,
+  stringstyle=\color{bridgeteal},
+  numberstyle=\tiny\color{bridgegray},
+  numbers=left,
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{bridgegray!40},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b
+}
+
+% Style JSON
+\lstdefinelanguage{json}{%
+  string=[s]{"}{"},
+  stringstyle=\color{bridgeteal},
+  comment=[l]{//},
+  commentstyle=\color{bridgegray}\itshape,
+  morestring=[b]",
+  literate=
+    *{0}{{{\color{bridgeblue}0}}}{1}
+     {1}{{{\color{bridgeblue}1}}}{1}
+     {2}{{{\color{bridgeblue}2}}}{1}
+     {3}{{{\color{bridgeblue}3}}}{1}
+     {4}{{{\color{bridgeblue}4}}}{1}
+     {5}{{{\color{bridgeblue}5}}}{1}
+     {6}{{{\color{bridgeblue}6}}}{1}
+     {7}{{{\color{bridgeblue}7}}}{1}
+     {8}{{{\color{bridgeblue}8}}}{1}
+     {9}{{{\color{bridgeblue}9}}}{1}
+     {:}{{{\color{bridgegray}{:}}}}{1}
+     {,}{{{\color{bridgegray}{,}}}}{1}
+     {\{}{{{\color{bridgeblue}{\{}}}}{1}
+     {\}}{{{\color{bridgeblue}{\}}}}}{1}
+     {[}{{{\color{bridgeblue}{[}}}}{1}
+     {]}{{{\color{bridgeblue}{]}}}}{1},
+}
+\lstdefinestyle{bridgejson}{style=bridgebase, language=json}
+
+% Style Python (utilise le langage builtin de listings)
+\lstdefinestyle{bridgepython}{%
+  style=bridgebase,
+  language=Python,
+  morekeywords={async,await,match,case}
+}
+
+\lstset{style=bridgebase}
+
+% --- TikZ -------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc}
+
+% Styles partages pour les schemas du projet
+\tikzset{
+  bridgeblock/.style={%
+    rectangle, rounded corners=2pt,
+    draw=bridgeblue, thick,
+    fill=bridgeblue!8,
+    text=bridgeblue,
+    align=center,
+    minimum width=28mm, minimum height=10mm,
+    inner sep=4pt,
+    font=\small\sffamily
+  },
+  bridgeflow/.style={%
+    -{Stealth[length=3mm,width=2mm]},
+    draw=bridgeteal, thick
+  },
+  bridgealertstyle/.style={%
+    rectangle, rounded corners=2pt,
+    draw=bridgealert, thick,
+    fill=bridgealert!8,
+    text=bridgealert,
+    align=center,
+    minimum width=28mm, minimum height=10mm,
+    font=\small\sffamily\bfseries
+  },
+  bridgenotetikz/.style={%
+    rectangle, rounded corners=2pt,
+    draw=bridgegray, dashed,
+    fill=bridgegray!5,
+    text=bridgegray,
+    align=left,
+    inner sep=4pt,
+    font=\footnotesize\sffamily\itshape
+  }
+}
+
+% Alias plus courts pour rester compatibles avec les schemas
+\tikzset{bridgealert/.style={bridgealertstyle}}
+
+% --- Bibliographie ---------------------------------------------------
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99,
+  giveninits=true
+]{biblatex}
+
+% --- Sous-titre partage pour la page de garde ------------------------
+% Les classes scrreprt et beamer ont leur propre logique de \subtitle ;
+% on garde une commande explicite \bridgesubtitle pour compatibilite.
+\providecommand{\bridgesubtitle}[1]{\gdef\@bridgesubtitle{#1}}
+\providecommand{\thebridgesubtitle}{\@bridgesubtitle}
+
+% Si la classe definit \subtitle (scrreprt KOMA, beamer), on l'utilise aussi.
+\providecommand{\subtitle}[1]{\bridgesubtitle{#1}}
+
+% --- Metadonnees PDF (renseignees a la compilation) ------------------
+\AtBeginDocument{%
+  \hypersetup{%
+    pdfauthor={Noel Junior Yando Fotso},
+    pdfsubject={IoT Edge Bridge - EPHEC TS6 2025-2026},
+    pdfkeywords={IoT, FHIR, HL7, KMEHR, BIHR, MDR, RGPD, eSante, EPHEC}
+  }
+}

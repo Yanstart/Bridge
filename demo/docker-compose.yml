@@ -1,0 +1,166 @@
+# =====================================================================
+# IoT Edge Bridge - demonstrateur dockerise
+#
+# Lancement : docker compose up [-d]
+# Arret     : docker compose down
+# Logs      : docker compose logs -f bridge
+#
+# Sprint 1 : 3 services minimaux (bridge stub, HAPI FHIR, MQTT broker).
+# Les 4 simulateurs et le dashboard arriveront aux sprints suivants.
+# =====================================================================
+
+name: iot-edge-bridge
+
+services:
+  # -------------------------------------------------------------------
+  # Bridge core (Python + FastAPI)
+  # -------------------------------------------------------------------
+  bridge:
+    build:
+      context: ./bridge
+      dockerfile: Dockerfile
+    container_name: bridge
+    restart: unless-stopped
+    environment:
+      BRIDGE_PORT: "8080"
+      HAPI_FHIR_URL: "http://hapi:8080/fhir"
+      MQTT_HOST: "mqtt"
+      MQTT_PORT: "1883"
+      LOG_LEVEL: "info"
+      FALLBACK_DB: "/app/data/fallback.sqlite"
+      REPLAY_INTERVAL_SEC: "30"
+    ports:
+      - "8080:8080"   # dashboard et API du bridge
+      - "2575:2575"   # MLLP HL7v2 (Adapter Philips)
+    volumes:
+      - ./profiles:/app/profiles:ro
+      - ./plugins:/app/plugins:ro
+      - ./volumes/drop:/app/drop:rw     # file-watcher
+      - ./volumes/data:/app/data:rw     # fallback SQLite
+    depends_on:
+      hapi:
+        condition: service_started
+      mqtt:
+        condition: service_started
+    networks:
+      - bridge-net
+
+  # -------------------------------------------------------------------
+  # HAPI FHIR Server (cible de publication)
+  # -------------------------------------------------------------------
+  hapi:
+    image: hapiproject/hapi:latest
+    container_name: hapi
+    restart: unless-stopped
+    environment:
+      hapi.fhir.fhir_version: "R4"
+      hapi.fhir.allow_external_references: "true"
+      hapi.fhir.default_pretty_print: "true"
+    ports:
+      - "8081:8080"   # http://localhost:8081/fhir
+    # Pas de healthcheck custom : l'image HAPI est distroless (pas de curl
+    # ni wget). Le bridge tolere que HAPI soit indisponible grace au retry
+    # exponentiel + file de repli SQLite.
+    networks:
+      - bridge-net
+
+  # -------------------------------------------------------------------
+  # Simulateur Philips IntelliVue MX450 (TCP MLLP HL7v2 ORU^R01)
+  # -------------------------------------------------------------------
+  sim-philips:
+    build:
+      context: ./simulators/philips-mx450
+      dockerfile: Dockerfile
+    container_name: sim-philips
+    restart: unless-stopped
+    environment:
+      BRIDGE_HOST: "bridge"
+      BRIDGE_PORT: "2575"
+      INTERVAL_SEC: "10"
+      DEVICE_ID: "MX450-DEMO-001"
+      ROOM_ID: "ROOM-12"
+      LOG_LEVEL: "INFO"
+    depends_on:
+      bridge:
+        condition: service_healthy
+    networks:
+      - bridge-net
+
+  # -------------------------------------------------------------------
+  # Simulateur Masimo Radical-7 (MQTT JSON, simulant un BLE)
+  # -------------------------------------------------------------------
+  sim-masimo:
+    build:
+      context: ./simulators/masimo-radical7
+      dockerfile: Dockerfile
+    container_name: sim-masimo
+    restart: unless-stopped
+    environment:
+      MQTT_HOST: "mqtt"
+      MQTT_PORT: "1883"
+      MQTT_TOPIC: "devices/masimo-radical7/spo2"
+      INTERVAL_SEC: "8"
+      LOG_LEVEL: "INFO"
+    depends_on:
+      mqtt:
+        condition: service_started
+    networks:
+      - bridge-net
+
+  # -------------------------------------------------------------------
+  # Simulateur Welch Allyn CP150 (depot de fichiers JSON)
+  # -------------------------------------------------------------------
+  sim-welchallyn:
+    build:
+      context: ./simulators/welchallyn-cp150
+      dockerfile: Dockerfile
+    container_name: sim-welchallyn
+    restart: unless-stopped
+    environment:
+      DROP_DIR: "/drop"
+      INTERVAL_SEC: "20"
+      LOG_LEVEL: "INFO"
+    volumes:
+      - ./volumes/drop:/drop:rw
+    networks:
+      - bridge-net
+
+  # -------------------------------------------------------------------
+  # Simulateur Drager Evita V500 (RS-232 simule via TCP, MEDIBUS ASCII)
+  # -------------------------------------------------------------------
+  sim-drager:
+    build:
+      context: ./simulators/drager-evita-v500
+      dockerfile: Dockerfile
+    container_name: sim-drager
+    restart: unless-stopped
+    environment:
+      LISTEN_HOST: "0.0.0.0"
+      LISTEN_PORT: "6100"
+      INTERVAL_SEC: "5"
+      LOG_LEVEL: "INFO"
+    networks:
+      - bridge-net
+
+  # -------------------------------------------------------------------
+  # MQTT broker (eclipse-mosquitto)
+  # -------------------------------------------------------------------
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./volumes/mosquitto/config:/mosquitto/config:ro
+      - ./volumes/mosquitto/data:/mosquitto/data:rw
+    networks:
+      - bridge-net
+
+# =====================================================================
+# Reseau interne
+# =====================================================================
+networks:
+  bridge-net:
+    name: bridge-net
+    driver: bridge

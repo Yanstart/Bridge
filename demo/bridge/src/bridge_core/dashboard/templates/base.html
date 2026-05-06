@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}IoT Edge Bridge{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-mark">IoT Edge Bridge</span>
+      <span class="brand-sub">Dashboard de supervision OT</span>
+    </div>
+    <nav class="topnav">
+      <a href="/" class="{% if active_section == 'overview' %}active{% endif %}">Vue d'ensemble</a>
+      <a href="/config" class="{% if active_section == 'config' %}active{% endif %}">Configuration</a>
+      <a href="/logs" class="{% if active_section == 'logs' %}active{% endif %}">Logs</a>
+      <a href="/plugins" class="{% if active_section == 'plugins' %}active{% endif %}">Plugins</a>
+    </nav>
+    <div class="topbar-right">
+      <span id="ws-status" class="ws-indicator ws-connecting" title="Etat de la connexion temps reel">connexion...</span>
+    </div>
+  </header>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="legend">
+    <span class="legend-title">Statuts :</span>
+    <span class="badge badge-green">Nominal</span>
+    <span class="badge badge-amber">Anomalie</span>
+    <span class="badge badge-red">Deconnecte</span>
+    <span class="badge badge-gray">Inconnu</span>
+    <span class="legend-info">Aucune valeur clinique patient n'est affichee. Le dashboard regarde les flux, pas le contenu.</span>
+  </footer>
+
+  <div id="toast-host"></div>
+
+  <script>
+    // WebSocket pour push temps reel des evenements
+    (function() {
+      const indicator = document.getElementById('ws-status');
+      function setIndicator(state, label) {
+        indicator.className = 'ws-indicator ws-' + state;
+        indicator.textContent = label;
+        indicator.title = label;
+      }
+      function connect() {
+        const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(proto + '//' + location.host + '/ws/events');
+        ws.addEventListener('open', () => setIndicator('open', 'temps reel'));
+        ws.addEventListener('close', () => {
+          setIndicator('lost', 'reconnexion...');
+          setTimeout(connect, 2000);
+        });
+        ws.addEventListener('error', () => ws.close());
+        ws.addEventListener('message', (ev) => {
+          try {
+            const data = JSON.parse(ev.data);
+            if (data.kind === 'heartbeat') return;
+            // Rafraichir les fragments visibles via HTMX
+            document.querySelectorAll('[data-hx-refresh-on-event]')
+              .forEach(el => htmx.trigger(el, 'refresh'));
+            spawnToast(data);
+          } catch (e) { /* ignore */ }
+        });
+      }
+      function spawnToast(event) {
+        const host = document.getElementById('toast-host');
+        if (!host) return;
+        const el = document.createElement('div');
+        el.className = 'toast toast-' + event.level;
+        el.innerHTML = '<strong>' + event.kind + '</strong> ' +
+          (event.device_id || '-') + ' : ' + (event.message || '');
+        host.appendChild(el);
+        setTimeout(() => el.remove(), 5000);
+      }
+      connect();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+\chapter{Plan de déploiement et d'exploitation}
+\label{ch:deploiement}
+
+Ce chapitre décrit le déploiement local de la démo et projette ce qui changerait pour un déploiement hospitalier réel. La cible reste un laptop unique, mais l'architecture est pensée pour migrer sans réécriture.
+
+\section{Environnement de la démo}
+\label{sec:deploiement-environnement}
+
+La démo tourne sur le laptop de l'auteur, sans dépendance Internet une fois les images Docker mises en cache. Cette autonomie protège la soutenance contre les aléas réseau.
+
+\bridgezebra
+\begin{longtable}{p{5cm}p{9cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Élément} & {\color{white}\bfseries Spécification} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Élément} & {\color{white}\bfseries Spécification} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  OS hôte                & Linux Ubuntu 22.04+ ou Windows 11 avec WSL2 \\
+  Docker Engine          & Version 24.0 ou supérieure \\
+  Docker Compose         & Version 2.20 ou supérieure \\
+  RAM                    & 8 Go minimum, 16 Go recommandés \\
+  CPU                    & 4 cœurs minimum \\
+  Espace disque          & 5 Go libres pour images et volumes \\
+  Port localhost 8080    & Dashboard FastAPI (HTMX) \\
+  Port localhost 8081    & HAPI FHIR Server (validation R4) \\
+\end{longtable}
+
+\section{Procédure d'installation}
+\label{sec:deploiement-installation}
+
+L'installation suit une séquence unique, scriptée dans le \texttt{docker-compose.yml} versionné avec le code source.
+
+\begin{bridgeinfo}[Lancement en une commande]
+Cloner le dépôt, exécuter \texttt{docker compose up -d}, attendre 30 secondes, ouvrir \texttt{http://localhost:8080} dans un navigateur. Aucune autre étape manuelle n'est requise.
+\end{bridgeinfo}
+
+Docker Compose orchestre la séquence interne. Il pull les images publiques, build l'image du conteneur bridge à partir du Dockerfile local, puis démarre les sept services (bridge, dashboard, HAPI, broker MQTT, et les quatre simulateurs). Les healthchecks intégrés signalent le service prêt en moins de 60 secondes.
+
+\section{Supervision pendant la démo}
+\label{sec:deploiement-supervision}
+
+Le dashboard est l'unique outil de supervision pendant la projection. Il agrège les statuts couleur des quatre équipements, le contexte indicatif sur anomalie, et les compteurs OT (messages traités, erreurs, file de quarantaine).
+
+\bridgezebra
+\begin{longtable}{p{6cm}p{8cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Indicateur observé} & {\color{white}\bfseries Action attendue} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Indicateur observé} & {\color{white}\bfseries Action attendue} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Statut équipement vert pendant 60 s     & Régime nominal, aucune action \\
+  Statut équipement orange                & Vérifier le contexte indicatif (plage, silence, format) \\
+  Statut équipement rouge                 & Vérifier l'état du conteneur simulateur via \texttt{docker compose ps} \\
+  Mail reçu par le technicien BM          & Ouvrir et confirmer l'absence de donnée patient \\
+  Compteur quarantaine en hausse rapide   & Inspecter la file et les logs structurés \\
+\end{longtable}
+
+\section{Plan B en cas de panne live}
+\label{sec:deploiement-plan-b}
+
+Une démo live reste exposée à des aléas matériels (panne projecteur, plantage Docker, batterie épuisée). Un plan de continuité de la démo est préparé en amont.
+
+\begin{bridgewarn}[Plan de continuité de la démo]
+Si Docker plante ou si le projecteur perd la connexion, l'auteur bascule vers la vidéo enregistrée préparée au jalon J6 du plan de réalisation. La vidéo dure 5 minutes, est narrée, et reproduit le scénario complet de la démo live. Voir chapitre \ref{ch:plan-realisation}.
+\end{bridgewarn}
+
+La vidéo se joue depuis VLC ou directement depuis une slide Beamer du pitch. Une copie de secours est conservée sur clé USB, indépendante du laptop principal. Cette redondance garantit la livraison du message même en cas de défaillance complète du poste de démo.
+
+\section{Projection sur un déploiement hospitalier réel}
+\label{sec:deploiement-projection-prod}
+
+La démo dockerisée n'est pas un déploiement de production. Cette section liste explicitement ce qui change quand on passe du laptop solo à un service hospitalier réel.
+
+\bridgezebra
+\begin{longtable}{p{6.5cm}p{7.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Composant en démo} & {\color{white}\bfseries Composant en production} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Composant en démo} & {\color{white}\bfseries Composant en production} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  HAPI FHIR conteneur local      & Endpoint FHIR du DPI hospitalier (Omnipro, H+) ou passerelle FHIR de l'eHealthBox \\
+  mTLS désactivé                 & mTLS obligatoire avec certificat émis par la PKI eHealth \\
+  Dashboard sans authentification & OIDC eHealth ou Keycloak interne avec rôles RBAC \\
+  4 simulateurs Docker           & Vrais équipements connectés via VLAN dispositifs médicaux \\
+  Plugins en répertoire local    & Registre signé des plugins approuvés par le RSSI \\
+  Stockage local SQLite          & Base centralisée (PostgreSQL ou équivalent), file de repli locale conservée \\
+  Pas de supervision externe     & Intégration SIEM hospitalier et exporteur Prometheus \\
+\end{longtable}
+
+\section{Plan de continuité (PCA et PRA)}
+\label{sec:deploiement-pca-pra}
+
+La démo n'a pas de PCA ou PRA formels. Pour la production, le RTO visé est de 30 minutes (relancer le conteneur sur un nœud secondaire) et le RPO de 5 minutes (réplication de la base centralisée vers un site secondaire). La file de repli locale chiffrée joue le rôle de tampon en cas de coupure entre la passerelle et la base centralisée. Le détail opérationnel d'un PCA hospitalier est hors-scope du présent CDC et relèverait du contrat de déploiement.

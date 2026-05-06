@@ -1,0 +1,367 @@
+% =====================================================================
+% pitch.tex - Pitch Beamer (10 min) IoT Edge Bridge
+% Projet TS6 - Noel Junior Yando Fotso - EPHEC 2025-2026
+% Compilation : latexmk -xelatex -shell-escape pitch.tex
+% =====================================================================
+\documentclass[10pt,aspectratio=169]{beamer}
+
+% --- Theme -----------------------------------------------------------
+% Theme Metropolis si disponible, sinon fallback "default" (commente).
+\IfFileExists{beamerthememetropolis.sty}{%
+  \usetheme{metropolis}%
+}{%
+  % Fallback : theme par defaut. Decommentez pour forcer un autre theme.
+  \usetheme{default}%
+  % \usetheme{Madrid}
+}
+
+% --- Encodage / langue / fontes --------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{csquotes}
+
+\usepackage{ifxetex,ifluatex}
+\newif\ifxetexorluatex
+\ifxetex\xetexorluatextrue\else
+  \ifluatex\xetexorluatextrue\else\xetexorluatexfalse\fi
+\fi
+\ifxetexorluatex
+  \usepackage{fontspec}
+  \IfFontExistsTF{Fira Sans}{\setsansfont{Fira Sans}}{}
+  \IfFontExistsTF{Fira Mono}{\setmonofont{Fira Mono}}{}
+\fi
+
+% --- Graphiques / couleurs / TikZ ------------------------------------
+\usepackage{graphicx}
+\usepackage{xcolor}
+\definecolor{bridgeblue}{HTML}{1F3A68}
+\definecolor{bridgeteal}{HTML}{0FA4AF}
+\definecolor{bridgegray}{HTML}{4A4A4A}
+\definecolor{bridgealert}{HTML}{C62828}
+\definecolor{bridgesoft}{HTML}{F2F6FB}
+\definecolor{bridgeinfo}{HTML}{E3F4F4}
+\definecolor{bridgegreen}{HTML}{2E7D32}
+\definecolor{bridgegreensoft}{HTML}{E8F5E9}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc}
+
+% Styles TikZ partages (necessaires pour les figures includes du projet)
+\tikzset{
+  bridgeblock/.style={%
+    rectangle, rounded corners=2pt,
+    draw=bridgeblue, thick,
+    fill=bridgeblue!8,
+    text=bridgeblue,
+    align=center,
+    minimum width=28mm, minimum height=10mm,
+    inner sep=4pt,
+    font=\small\sffamily
+  },
+  bridgeflow/.style={%
+    -{Stealth[length=3mm,width=2mm]},
+    draw=bridgeteal, thick
+  }
+}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{listings}
+
+% --- Styles listings -------------------------------------------------
+\lstdefinestyle{bridgebase}{%
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{bridgegray!40},
+  backgroundcolor=\color{bridgegray!5},
+}
+\lstdefinestyle{bridgejson}{%
+  style=bridgebase,
+  basicstyle=\ttfamily\scriptsize\color{bridgeblue!90!black},
+  keywordstyle=\color{bridgeteal}\bfseries,
+  stringstyle=\color{bridgealert!80!black},
+  morekeywords={resourceType,code,coding,system,valueQuantity,value,unit,subject,effectiveDateTime,status},
+  morestring=[b]",
+}
+
+% --- Couleurs Beamer projet -----------------------------------------
+\setbeamercolor{frametitle}{bg=bridgeblue,fg=white}
+\setbeamercolor{title}{fg=bridgeblue}
+\setbeamercolor{structure}{fg=bridgeblue}
+\setbeamercolor{alerted text}{fg=bridgealert}
+\setbeamercolor{block title}{bg=bridgeteal,fg=white}
+\setbeamercolor{block body}{bg=bridgeteal!8,fg=black}
+
+% --- Encadres colores (warn / info / key / note) ---------------------
+\newenvironment{bridgewarn}[1][Attention]{%
+  \begin{beamercolorbox}[wd=\textwidth,sep=2mm,rounded=true]{block body}%
+    \footnotesize\textbf{\color{bridgealert}#1.}\par\vspace{1mm}%
+}{%
+  \end{beamercolorbox}%
+}
+\newenvironment{bridgeinfo}[1][Note]{%
+  \begin{beamercolorbox}[wd=\textwidth,sep=2mm,rounded=true]{block body}%
+    \footnotesize\textbf{\color{bridgeblue}#1.}\par\vspace{1mm}%
+}{%
+  \end{beamercolorbox}%
+}
+\newenvironment{bridgekey}[1][Cle]{%
+  \begin{beamercolorbox}[wd=\textwidth,sep=2mm,rounded=true]{block body}%
+    \footnotesize\textbf{\color{bridgeteal}#1.}\par\vspace{1mm}%
+}{%
+  \end{beamercolorbox}%
+}
+
+% --- Footer custom : "Ch.X - Titre" en bas droit ---------------------
+% On utilise une commande \chref a redefinir dans chaque frame.
+\newcommand{\chref}[1]{\gdef\@chref{#1}}
+\chref{}
+
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.5ex,dp=1ex,leftskip=2ex]{author in head/foot}%
+      \usebeamerfont{author in head/foot}\insertshortauthor%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.5ex,dp=1ex,rightskip=2ex]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\hfill\textcolor{bridgegray}{\@chref}\quad\insertframenumber/\inserttotalframenumber%
+    \end{beamercolorbox}%
+  }%
+}
+
+\setbeamertemplate{navigation symbols}{}
+
+% --- Metadonnees -----------------------------------------------------
+\title{IoT Edge Bridge}
+\subtitle{Du chaos des dispositifs au continuum BIHR}
+\author[Yando Fotso]{No\"el Junior Yando Fotso}
+\institute{EPHEC Brussels --- TS6}
+\date{2 mars 2027}
+
+% =====================================================================
+\begin{document}
+
+% --- 1. Couverture ---------------------------------------------------
+\chref{}
+\begin{frame}[plain]
+  \titlepage
+  \note{Slide 1. Bonjour a tous. Je vais vous presenter en 10 minutes notre IoT Edge Bridge, une passerelle qui transforme les donnees des dispositifs medicaux Legacy en standards modernes. Demo en live a la fin.}
+\end{frame}
+
+% --- 2. Le chaos / l'ordre (ch.1) ------------------------------------
+\chref{Ch.1 --- Contexte e-sant\'e}
+\begin{frame}{Le chaos\ldots\ et l'ordre que l'on vise}
+  \begin{center}
+    \textbf{Le constat}\\[1mm]
+    \resizebox{0.92\textwidth}{!}{\input{figures/fig-chaos-ordre.tex}}\\[1mm]
+    {\itshape\small \`A gauche, le chaos. Au milieu, notre passerelle. \`A droite, l'ordre BIHR.}
+  \end{center}
+  \note{Slide 2. Voici notre projet en une image. A gauche, des dispositifs Legacy : moniteurs, glucometres, spirometres, pompes. Chacun parle son propre langage. Au milieu, notre passerelle, qui absorbe ce chaos. A droite, le BIHR uniformise. C'est ca qu'on construit.}
+\end{frame}
+
+% --- 3. Le constat (ch.1) --------------------------------------------
+\chref{Ch.1 --- Le constat}
+\begin{frame}{Pourquoi maintenant ?}
+  \begin{itemize}
+    \item Plan eSant\'e 2025-2027 cible le BIHR comme colonne vert\'ebrale.
+    \item La majorit\'e des h\^opitaux belges restent sous le stade 4 de maturit\'e num\'erique.
+    \item Le parc Legacy a 15 \`a 20 ans. Les standards changent tous les 3 \`a 5 ans.
+  \end{itemize}
+  \vspace{2mm}
+  \begin{bridgewarn}[Verrou r\'eglementaire MDR]
+    Modifier un dispositif m\'edical certifi\'e supprime son marquage CE. On ne peut donc rien toucher.
+  \end{bridgewarn}
+  \note{Slide 3. Le BIHR est en route mais le terrain ne suit pas. La majorite des hopitaux n'integrent pas automatiquement les donnees de leurs dispositifs. Et on ne peut pas remplacer le parc, parce qu'un moniteur, une pompe, ca vit 15 a 20 ans, et le MDR interdit toute modification.}
+\end{frame}
+
+% --- 4. Notre reponse en 1 image (ch.4) ------------------------------
+\chref{Ch.4 --- Architecture en 1 image}
+\begin{frame}{Notre r\'eponse en une image}
+  \begin{center}
+    \resizebox{0.88\textwidth}{!}{\input{figures/fig-pipeline-4couches.tex}}\\[2mm]
+    {\itshape\small Quatre couches enfichables. Configurables par profil JSON.}
+  \end{center}
+  \note{Slide 4. Notre middleware se presente en 4 couches. Adapter pour absorber n'importe quel canal d'entree. Parser pour decoder. Mapper pour codifier en LOINC et FHIR. Transport pour publier de maniere securisee. Chaque couche est extensible par plugin.}
+\end{frame}
+
+% --- 5. Ou ca s'insere (ch.2) ----------------------------------------
+\chref{Ch.2 --- Insertion dans le SIH}
+\begin{frame}{O\`u \c{c}a s'ins\`ere dans l'h\^opital}
+  \begin{center}
+    \begin{tabular}{ll}
+      \toprule
+      \textbf{Niveau} & \textbf{Position de la passerelle} \\
+      \midrule
+      M\'etier      & Am\'eliore la continuit\'e des donn\'ees patient \\
+      Fonctionnel   & Automatise la capture vers le DPI \\
+      Applicatif    & Middleware entre dispositifs et DPI \\
+      Technique     & Gateway edge Python sur poste local \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \note{Slide 5. Du point de vue de la pyramide d'architecture, on est un middleware applicatif. On vit entre les dispositifs et le DPI. Cote OT, on offre une supervision aux techniciens biomedicaux. Cote IT, on alimente le DPI sans saisie manuelle.}
+\end{frame}
+
+% --- 6. Coeur : du chaos au FHIR (ch.3) ------------------------------
+\chref{Ch.3 --- C\oe ur : legacy \textrightarrow{} FHIR}
+\begin{frame}[fragile]{Du chaos au FHIR R4}
+  \begin{columns}[T]
+    \begin{column}{0.42\textwidth}
+      \footnotesize\textbf{Trame brute HL7 v2 (Philips MX450)}
+\begin{lstlisting}[style=bridgebase]
+MSH|^~\&|MX450|...
+PID|1||DEMO-12||...
+OBR|1||...
+OBX|1|NM|59408-5^SpO2|...|96|%
+\end{lstlisting}
+    \end{column}
+    \begin{column}{0.56\textwidth}
+      \footnotesize\textbf{Ressource FHIR Observation}
+\begin{lstlisting}[style=bridgejson]
+{
+  "resourceType": "Observation",
+  "code": {"coding": [{"code": "59408-5"}]},
+  "valueQuantity": {"value": 96, "unit": "%"}
+}
+\end{lstlisting}
+    \end{column}
+  \end{columns}
+  \note{Slide 6. Voici la magie. A gauche une trame HL7 v2 brute du moniteur Philips. A droite la meme information, en ressource FHIR R4 avec le code LOINC standard. Notre passerelle fait cette traduction en moins de 200 ms.}
+\end{frame}
+
+% --- 7. Standards mobilises (ch.3) -----------------------------------
+\chref{Ch.3 --- Standards}
+\begin{frame}{Standards mobilis\'es}
+  \begin{center}
+    \begin{tabular}{ll}
+      \toprule
+      \textbf{Standard} & \textbf{R\^ole dans la passerelle} \\
+      \midrule
+      HL7 v2    & Entr\'ee moniteur Legacy \\
+      FHIR R4   & Sortie principale moderne \\
+      LOINC     & Codes des mesures cliniques \\
+      IHE PCD   & Profil d'int\'egration des dispositifs \\
+      KMEHR     & Standard belge, roadmap \\
+      DICOM     & Imagerie, hors-scope \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \note{Slide 7. On ne reinvente rien. HL7 v2 pour absorber le legacy. FHIR R4 pour publier moderne. LOINC pour les codes. IHE PCD comme cadre. KMEHR et DICOM en roadmap.}
+\end{frame}
+
+% --- 8. Couche transport & securite (ch.4 + ch.7) --------------------
+\chref{Ch.4 \& Ch.7 --- Transport \& s\'ecurit\'e}
+\begin{frame}{Transport s\'ecuris\'e}
+  \begin{itemize}
+    \item mTLS sur la sortie HAPI FHIR. Authentification mutuelle.
+    \item File de repli SQLite chiffr\'ee si r\'eseau coup\'e. RTO \textless\ 30 s.
+    \item Logs structur\'es JSON, sans donn\'ee patient. Minimisation par construction.
+  \end{itemize}
+  \note{Slide 8. La securite repose sur 3 piliers. mTLS pour le transport. Une file de repli locale chiffree pour la resilience. Et surtout, aucune donnee clinique dans nos logs. Le dashboard regarde les flux, pas le contenu.}
+\end{frame}
+
+% --- 9. Equipements cibles (ch.5) ------------------------------------
+\chref{Ch.5 --- \'Equipements cibles}
+\begin{frame}{Quatre \'equipements, quatre canaux}
+  \begin{center}
+    \scriptsize
+    \begin{tabular}{llll}
+      \toprule
+      \textbf{\'Equipement} & \textbf{Canal} & \textbf{Format} & \textbf{Mesure} \\
+      \midrule
+      Philips MX450      & TCP MLLP        & HL7 v2    & SpO2, FC, PA \\
+      Masimo Radical-7   & BLE \textrightarrow{} MQTT & JSON      & SpO2 \\
+      Welch Allyn CP150  & Fichier         & SCP-ECG   & \'Etude ECG \\
+      Dr\"ager Evita V500 & RS-232         & MEDIBUS   & FiO2, PEEP \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \note{Slide 9. Pour la demo on a selectionne 4 equipements representatifs des canaux les plus courants en hopital. TCP, BLE, fichier, RS-232. Chacun a son profil JSON. Aucune ligne de code specifique dans le coeur.}
+\end{frame}
+
+% --- 10. Evaluation & adoption (ch.6) --------------------------------
+\chref{Ch.6 --- \'Evaluation \& adoption}
+\begin{frame}{Adoption et \'evaluation}
+  \begin{itemize}
+    \item Statut non-DM : middleware d'int\'egration IT, pas dispositif m\'edical.
+    \item Pyramide mHealth Belgium adapt\'ee : niveau M2 vis\'e en d\'emo.
+    \item Argument m\'edico-\'economique : \'eviter de jeter 15 ans d'investissement mat\'eriel.
+  \end{itemize}
+  \vspace{2mm}
+  \begin{bridgekey}[Argument massue]
+    Le co\^ut d'une passerelle est inf\'erieur d'un facteur 5 au remplacement d'un parc \'equivalent.
+  \end{bridgekey}
+  \note{Slide 10. On revendique le statut non-DM, ca simplifie tout. On vise M2 sur l'echelle mhealthbelgium. Et le vrai argument c'est l'economique : 5 fois moins cher que de remplacer un parc neuf.}
+\end{frame}
+
+% --- 11. Securite & RGPD (ch.7) --------------------------------------
+\chref{Ch.7 --- S\'ecurit\'e \& RGPD}
+\begin{frame}{S\'ecurit\'e, RGPD, \'ethique}
+  \begin{itemize}
+    \item CIA et tra\c{c}abilit\'e : checksum SHA-256, mTLS, logs JSON, retry exponentiel.
+    \item RGPD : minimisation par construction, AIPD esquiss\'ee pour la prod.
+    \item \'Ethique : la passerelle ne d\'ecide rien cliniquement. Responsabilit\'es s\'epar\'ees.
+  \end{itemize}
+  \note{Slide 11. Securite sur les 4 piliers CIA et tracabilite. RGPD respecte par minimisation. Cote ethique, on est tres clairs : on ne decide rien cliniquement. Le medecin reste seul juge.}
+\end{frame}
+
+% --- 12. Roadmap & ouverture -----------------------------------------
+\chref{Roadmap}
+\begin{frame}{Roadmap : 3 \'evolutions}
+  \begin{itemize}
+    \item F1 : plugins de traduction communautaires, mod\`ele HACS.
+    \item F2 : d\'etection d'anomalies en bord, IA l\'eg\`ere ONNX.
+    \item F3 : f\'ed\'eration europ\'eenne EHDS, mobilit\'e transfrontali\`ere.
+  \end{itemize}
+  \vspace{2mm}
+  \begin{bridgeinfo}[Effet de catalogue]
+    Aucun \'editeur seul ne peut couvrir tous les dispositifs. La communaut\'e \'ecrit ses plugins.
+  \end{bridgeinfo}
+  \note{Slide 12. La passerelle est concue pour grandir. F1, plugins communautaires. F2, IA en bord pour detecter les valeurs aberrantes. F3, federation EHDS europeenne. Le code est pret a recevoir tout ca.}
+\end{frame}
+
+% --- 13. Synthese examen ---------------------------------------------
+\chref{Synth\`ese}
+\begin{frame}{Ce que vous reverrez \`a l'examen}
+  \begin{itemize}
+    \item Ch.1 : OMS cat\'egorie 2, plan eSant\'e, BIHR.
+    \item Ch.2 : pyramide d'architecture, DPI, continuum DIKW.
+    \item Ch.3 : 3 couches d'interop\'erabilit\'e, FHIR R4, IHE PCD.
+    \item Ch.4 : OSI 7 couches, mTLS, edge plut\^ot que cloud.
+    \item Ch.5 : capteurs par grandeur physique, capture passive.
+    \item Ch.6 : mHealth M1/M2/M3, statut non-DM, 7 facteurs adoption.
+    \item Ch.7 : CIA et tra\c{c}abilit\'e, RGPD minimisation, AIPD.
+  \end{itemize}
+  \note{Slide 13. En une slide, ce que notre projet illustre dans chacun des 7 chapitres du cours. Si vous reverrez ces concepts a l'examen, vous saurez qu'ils existent en vrai dans la passerelle.}
+\end{frame}
+
+% --- 14. Transition vers la demo -------------------------------------
+\chref{D\'emo}
+\begin{frame}[plain]{Place \`a la d\'emo}
+  \vspace{1.5cm}
+  \begin{center}
+    {\Large\bfseries\color{bridgeblue} Maintenant, on lance.}\\[6mm]
+    {\itshape\large\ttfamily docker compose up}
+  \end{center}
+  \note{Slide 14. La theorie c'est bien. Maintenant on lance. 5 minutes, en live, sur Docker. Vous allez voir les 4 simulateurs publier en FHIR sur HAPI en temps reel.}
+\end{frame}
+
+% --- 15. Q&R / Merci -------------------------------------------------
+\chref{Merci}
+\begin{frame}[plain]{Merci. Questions ?}
+  \vspace{1.2cm}
+  \begin{center}
+    {\Large\color{bridgeblue} IoT Edge Bridge}\\[3mm]
+    {\large\itshape Questions, remarques, id\'ees de plugins ?}\\[8mm]
+    \resizebox{0.55\textwidth}{!}{\input{figures/fig-chaos-ordre.tex}}
+  \end{center}
+  \note{Slide 15. Merci pour votre attention. Si vous avez des questions, des idees d'equipements a integrer, des plugins a ecrire, je suis preneur.}
+\end{frame}
+
+\end{document}

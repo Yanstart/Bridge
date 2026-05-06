@@ -1,0 +1,16 @@
+{% if events %}
+  <ul class="events-list">
+    {% for event in events %}
+      <li class="event event-{{ event.level }}">
+        <time class="event-time">{{ event.timestamp.split('T')[1][:8] }}</time>
+        <span class="event-kind kind-{{ event.kind }}">{{ event.kind }}</span>
+        {% if event.device_id %}
+          <a class="event-device" href="/devices/{{ event.device_id }}"><code>{{ event.device_id }}</code></a>
+        {% endif %}
+        <span class="event-message">{{ event.message }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="empty">Aucun evenement enregistre pour l'instant.</p>
+{% endif %}

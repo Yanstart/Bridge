@@ -1,0 +1,194 @@
+\chapter{Exigences non-fonctionnelles}
+\label{ch:exigences-non-fonctionnelles}
+
+Ce chapitre cadre la qualité de service attendue de la démo. Chaque exigence est mesurable et porte une cible chiffrée vérifiable sur le banc de test local. Les ENF complètent les exigences fonctionnelles du chapitre \ref{ch:exigences-fonctionnelles} et alimentent la stratégie de validation présentée dans les chapitres suivants.
+
+\section*{Synthèse}
+\label{sec:enf-synthese}
+
+\bridgezebra
+\begin{longtable}{p{2.8cm}p{6.8cm}p{5.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries ID} & {\color{white}\bfseries Titre} & {\color{white}\bfseries Cible chiffrée} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries ID} & {\color{white}\bfseries Titre} & {\color{white}\bfseries Cible chiffrée} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  ENF-PERF-001 & Latence d'ingestion bout en bout                        & p95 < 500 ms                          \\
+  ENF-PERF-002 & Débit soutenu                                           & $\geq$ 50 trames/s sur 5 min          \\
+  ENF-RESL-001 & Stabilité durée démo                                    & 0 crash sur 15 min                    \\
+  ENF-RESL-002 & RTO sur fallback SQLite                                 & < 30 s après 3e retry échoué          \\
+  ENF-SEC-001  & Intégrité des messages persistés                        & 100 \% SHA-256 valides                \\
+  ENF-SEC-002  & Chiffrement de la file de repli                         & 0 message lisible en clair            \\
+  ENF-SEC-003  & Journalisation horodatée UTC                            & 100 \% des événements tracés          \\
+  ENF-CONF-001 & Aucune valeur clinique dans les logs                    & 0 occurrence LOINC en logs            \\
+  ENF-CONF-002 & Aucune identité patient dans dashboard et mails         & 0 occurrence d'identité               \\
+  ENF-MTN-001  & Logs structurés JSON                                    & 100 \% conformes au schéma            \\
+  ENF-CFG-001  & Ajout d'un dispositif sans modification de code         & 0 ligne Python modifiée               \\
+  ENF-UX-001   & Temps de chargement dashboard                           & TTI < 2 s sur localhost               \\
+\end{longtable}
+
+\section{Performance}
+\label{sec:enf-performance}
+
+La démo doit prouver que la passerelle traite quatre flux concurrents en temps réel sans accumulation de retard. Les cibles ci-dessous sont vérifiées sur un laptop standard, avec les quatre simulateurs Docker actifs simultanément.
+
+\subsection*{ENF-PERF-001 : Latence d'ingestion bout en bout}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT publier un Bundle FHIR vers HAPI dans un délai p95 inférieur à 500 ms après réception de la trame source.
+  \item[Priorité] MUST
+  \item[Métrique] Latence en millisecondes entre arrivée réseau et réponse HTTP 201 de HAPI.
+  \item[Cible] p95 < 500 ms.
+  \item[Mesure] Injection de 1000 trames TCP via le simulateur Philips, horodatage à l'arrivée socket et à la réponse HAPI, calcul du percentile 95 par script Python.
+  \item[Lié à] EF-ADP-001, EF-PRS-004, EF-TRP-001
+\end{description}
+
+\subsection*{ENF-PERF-002 : Débit soutenu}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT soutenir un débit minimum de 50 trames par seconde pendant 5 minutes consécutives, sans accumulation dans la file interne.
+  \item[Priorité] MUST
+  \item[Métrique] Trames traitées par seconde (compteur Prometheus exposé par le bridge).
+  \item[Cible] $\geq$ 50 trames/s en moyenne mobile sur 5 min, taille de file en sortie inférieure à 100 messages.
+  \item[Mesure] Injecteur multi-canal alimentant les 4 simulateurs en parallèle, métrique compteur Python lue toutes les 10 s.
+  \item[Lié à] EF-ADP-001, EF-ADP-002, EF-ADP-003, EF-ADP-004
+\end{description}
+
+\section{Disponibilité et résilience}
+\label{sec:enf-resilience}
+
+La passerelle doit tenir la durée du pitch sans intervention. Elle doit aussi survivre à une coupure réseau temporaire en persistant localement les messages non livrés.
+
+\subsection*{ENF-RESL-001 : Stabilité durée démo}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT fonctionner 15 minutes en charge nominale sans crash du processus principal ni des conteneurs simulateurs.
+  \item[Priorité] MUST
+  \item[Métrique] MTBF observé sur la session.
+  \item[Cible] MTBF > 15 min en charge nominale, 0 crash.
+  \item[Mesure] Démo répétée 3 fois sur la même machine, supervision \texttt{docker compose ps} et inspection des codes de sortie. 0 redémarrage de conteneur sur les 3 sessions.
+  \item[Lié à] EF-PLG-004
+\end{description}
+
+\subsection*{ENF-RESL-002 : RTO sur fallback}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT basculer vers la file de repli SQLite chiffrée en moins de 30 secondes après le 3e retry HTTP échoué.
+  \item[Priorité] MUST
+  \item[Métrique] Délai entre l'échec du 3e retry (16 s d'attente déjà écoulés) et la première écriture persistée en SQLite.
+  \item[Cible] < 30 s.
+  \item[Mesure] Injection d'une panne réseau via \texttt{iptables -j DROP} sur le port HAPI, lecture des logs structurés, mesure de l'écart entre les événements \texttt{retry\_failed} et \texttt{fallback\_persisted}.
+  \item[Lié à] EF-TRP-002, EF-TRP-003
+\end{description}
+
+\section{Sécurité (triade CIA)}
+\label{sec:enf-securite}
+
+Les trois ENF de cette section couvrent l'intégrité, la confidentialité au repos et la traçabilité. La démo fonctionne en TLS plain local mais l'architecture sous-jacente reste compatible mTLS comme spécifié à EF-TRP-004.
+
+\subsection*{ENF-SEC-001 : Intégrité des messages persistés}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT calculer et stocker un hash SHA-256 pour chaque message placé dans la file de repli SQLite, et vérifier ce hash au rechargement.
+  \item[Priorité] MUST
+  \item[Métrique] Pourcentage de messages dont le hash est validé à la relecture.
+  \item[Cible] 100 \%, 0 corruption tolérée.
+  \item[Mesure] Persistance forcée de 1000 messages, redémarrage du bridge, comparaison hash stocké vs hash recalculé en lecture.
+  \item[Lié à] EF-TRP-003
+\end{description}
+
+\subsection*{ENF-SEC-002 : Chiffrement de la file de repli}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT chiffrer le payload de chaque message persisté dans la file SQLite via un schéma symétrique authentifié (Fernet ou équivalent AES-GCM).
+  \item[Priorité] MUST
+  \item[Métrique] Présence de chaînes lisibles correspondant aux codes LOINC ou aux unités cliniques dans le fichier SQLite.
+  \item[Cible] 0 occurrence en clair.
+  \item[Mesure] Commande \texttt{strings fallback.sqlite | grep -E "59408-5|8867-4|mmHg|bpm"}, résultat vide attendu.
+  \item[Lié à] EF-TRP-003
+\end{description}
+
+\subsection*{ENF-SEC-003 : Journalisation horodatée}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT émettre un log JSON horodaté UTC pour chaque événement de capture, parse, mapping, transport et erreur.
+  \item[Priorité] MUST
+  \item[Métrique] Ratio (événements tracés / événements observés sur les 4 couches).
+  \item[Cible] 100 \%.
+  \item[Mesure] Décompte automatique des messages entrants par les simulateurs vs décompte des événements \texttt{event=*} dans \texttt{logs/bridge.jsonl}, écart nul attendu.
+  \item[Lié à] EF-PUB-002
+\end{description}
+
+\section{Confidentialité et minimisation RGPD}
+\label{sec:enf-confidentialite}
+
+L'article 5 du RGPD impose la minimisation : ne traiter que les données strictement nécessaires à la finalité. Pour le dashboard et les notifications, la finalité (supervision OT, alertes biomédicales) ne requiert ni identité patient, ni valeur clinique horodatée.
+
+\begin{bridgewarn}[Principe de minimisation]
+Le dashboard et les notifications du middleware ne contiennent aucune donnée à caractère personnel ni aucune valeur clinique horodatée pouvant être rattachée à un patient identifié ou identifiable. Cette règle est testable, auditable, et fait l'objet de deux ENF dédiées (ENF-CONF-001, ENF-CONF-002). Toute violation détectée invalide la recette de la démo.
+\end{bridgewarn}
+
+\subsection*{ENF-CONF-001 : Aucune valeur clinique dans les logs}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système NE DOIT PAS écrire de valeur clinique mesurée (SpO\textsubscript{2}, FC, PA, glycémie, FEV1, débit MEDIBUS) dans les logs structurés ni dans les notifications mail. Référence : \cite{rgpd_2016_679}.
+  \item[Priorité] MUST
+  \item[Métrique] Nombre d'occurrences de codes LOINC ou de paires (valeur, unité clinique) dans \texttt{logs/*.json}.
+  \item[Cible] 0 occurrence sur 15 min de session.
+  \item[Mesure] Audit automatisé : \texttt{grep -E "59408-5|8867-4|8480-6|8462-4|2339-0|20150-9" logs/*.json} retourne vide. Audit complémentaire sur les unités (\texttt{mmHg}, \texttt{bpm}, \texttt{mg/dL}, \texttt{mL/h}).
+  \item[Lié à] EF-DSH-006, EF-PUB-002
+\end{description}
+
+\subsection*{ENF-CONF-002 : Aucune identité patient dans le dashboard ni les mails}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système NE DOIT PAS afficher dans le dashboard ni inclure dans les mails d'alerte le nom, le prénom, l'INS, le NISS, ni un identifiant de chambre nominatif rattachable à un patient. Référence : \cite{rgpd_2016_679}.
+  \item[Priorité] MUST
+  \item[Métrique] Nombre d'occurrences d'identifiant patient dans \texttt{dashboard.log} et \texttt{mails.log}.
+  \item[Cible] 0 occurrence.
+  \item[Mesure] Revue manuelle de l'interface plus grep regex sur les patterns NISS belge (\texttt{\textbackslash d\{2\}\textbackslash .\textbackslash d\{2\}\textbackslash .\textbackslash d\{2\}-\textbackslash d\{3\}\textbackslash .\textbackslash d\{2\}}) et sur les noms de la table de correspondance simulée.
+  \item[Lié à] EF-DSH-004, EF-DSH-006
+\end{description}
+
+\section{Maintenabilité et observabilité}
+\label{sec:enf-maintenabilite}
+
+Le bridge doit être facile à diagnostiquer pendant la démo et après. Le format des logs conditionne l'efficacité du dashboard et de toute analyse post-mortem.
+
+\subsection*{ENF-MTN-001 : Logs structurés JSON}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] Le système DOIT émettre tous ses logs au format JSON ligne par ligne, conformes à un schéma JSON Schema versionné.
+  \item[Priorité] MUST
+  \item[Métrique] Pourcentage de lignes valides selon le schéma.
+  \item[Cible] 100 \%.
+  \item[Mesure] Pipeline de validation \texttt{cat logs/*.json | jq -c . | jsonschema -i - schemas/log.schema.json}, retour 0 erreur attendu.
+  \item[Lié à] EF-PUB-002
+\end{description}
+
+\section{Configurabilité}
+\label{sec:enf-configurabilite}
+
+C'est le cœur du projet. Toute la valeur de la passerelle tient à cette propriété : ajouter un nouveau dispositif ne doit jamais demander de modification du code Python du cœur.
+
+\subsection*{ENF-CFG-001 : Ajout d'un dispositif sans modification de code}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] L'intégration d'un cinquième dispositif ne DOIT requérir aucune modification du code Python du cœur. Le déclenchement DOIT se faire par dépôt d'un profil JSON ou d'un plugin conforme à l'API plugin.
+  \item[Priorité] MUST
+  \item[Métrique] Lignes de code modifiées dans \texttt{src/bridge/} après l'intégration d'un nouveau dispositif.
+  \item[Cible] 0 ligne modifiée.
+  \item[Mesure] Snapshot Git avant l'ajout, dépôt d'un plugin de température fictif, intégration validée par recette fonctionnelle, \texttt{git diff src/bridge/} doit retourner vide.
+  \item[Lié à] EF-PLG-001, EF-ADP-006
+\end{description}
+
+\section{Ergonomie}
+\label{sec:enf-ergonomie}
+
+Le dashboard est consulté sous pression par un technicien biomédical. Il doit charger vite et rester lisible sans formation préalable.
+
+\subsection*{ENF-UX-001 : Temps de chargement dashboard}
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Énoncé] La page d'accueil du dashboard DOIT être interactive en moins de 2 secondes sur localhost après démarrage du conteneur.
+  \item[Priorité] MUST
+  \item[Métrique] Time to Interactive (TTI) mesuré par Lighthouse en local.
+  \item[Cible] TTI < 2 s.
+  \item[Mesure] \texttt{lighthouse http://localhost:8000 --only-categories=performance} après \texttt{docker compose up}, TTI lu dans le rapport JSON.
+  \item[Lié à] EF-DSH-005
+\end{description}

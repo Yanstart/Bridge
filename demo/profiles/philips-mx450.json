@@ -1,0 +1,64 @@
+{
+  "id": "philips-mx450",
+  "name": "Philips IntelliVue MX450",
+  "enabled": true,
+  "channel": {
+    "type": "tcp_mllp",
+    "host": "0.0.0.0",
+    "port": 2575
+  },
+  "parser": {
+    "type": "hl7v2",
+    "message_type": "ORU_R01",
+    "encoding": "utf-8"
+  },
+  "mapping": {
+    "fields": [
+      {
+        "source_path": "OBX[loinc=59408-5]/value",
+        "loinc_code": "59408-5",
+        "loinc_display": "Oxygen saturation in Arterial blood by Pulse oximetry",
+        "unit": "%",
+        "ucum_code": "%",
+        "plausibility": { "min": 50, "max": 100 }
+      },
+      {
+        "source_path": "OBX[loinc=8867-4]/value",
+        "loinc_code": "8867-4",
+        "loinc_display": "Heart rate",
+        "unit": "bpm",
+        "ucum_code": "/min",
+        "plausibility": { "min": 20, "max": 300 }
+      },
+      {
+        "source_path": "OBX[loinc=8480-6]/value",
+        "loinc_code": "8480-6",
+        "loinc_display": "Systolic blood pressure",
+        "unit": "mmHg",
+        "ucum_code": "mm[Hg]",
+        "plausibility": { "min": 40, "max": 260 }
+      },
+      {
+        "source_path": "OBX[loinc=8462-4]/value",
+        "loinc_code": "8462-4",
+        "loinc_display": "Diastolic blood pressure",
+        "unit": "mmHg",
+        "ucum_code": "mm[Hg]",
+        "plausibility": { "min": 20, "max": 200 }
+      }
+    ]
+  },
+  "destination": {
+    "type": "fhir_hapi",
+    "url": "http://hapi:8080/fhir",
+    "timeout_seconds": 10.0,
+    "retry_max": 3,
+    "mtls_enabled": false
+  },
+  "device_metadata": {
+    "manufacturer": "Philips",
+    "model_number": "IntelliVue MX450",
+    "serial_number": "DEMO-MX450-001",
+    "udi": "(01)00382902550210"
+  }
+}

@@ -1,0 +1,94 @@
+\chapter{Implémentation, adoption, évaluation et perspectives}
+\label{ch:deploiement}
+
+Comment déployer la passerelle, en faire adopter l'usage et prouver sa valeur ? Ce chapitre articule calendrier de déploiement, statut MDR, cadre mHealth Belgium, sept facteurs d'adoption et grille d'évaluation. Il prépare la dimension sécurité du chapitre~\ref{ch:ethique-securite}.
+
+\section{Phases d'implémentation}
+\label{sec:deploiement-phases}
+
+\bridgezebra
+\begin{tabular}{p{2.2cm}p{6.5cm}p{5cm}}
+\toprule
+\bridgeheader Phase & Description & Livrable \\
+\midrule
+Phase 0 & Audit du parc dispositifs hospitaliers, identification des familles cibles & Cartographie OT \\
+Phase 1 & POC sur un service (USI ou pneumologie), un seul type de dispositif & Démo dockerisée (présent travail) \\
+Phase 2 & Extension à 3 à 5 familles, intégration au DPI test & Pilote unitaire \\
+Phase 3 & Pilote multisite, raccordement au MetaHub & Pilote intégré \\
+Phase 4 & Industrialisation, passage en production & Déploiement opérationnel \\
+\bottomrule
+\end{tabular}
+
+La démonstration livrée correspond à la phase~1. Les phases ultérieures relèvent d'un projet d'industrialisation porté conjointement par la DSI, le service biomédical et le DPO.
+
+\section{Statut réglementaire de la passerelle}
+\label{sec:deploiement-mdr}
+
+\begin{bridgekey}[Statut non-DM revendiqué]
+La passerelle est un middleware d'intégration IT. Elle ne décide rien cliniquement. Elle ne modifie pas les dispositifs amont. Elle consomme des sorties existantes et les normalise. Cette posture la place hors du champ MDR pour la passerelle elle-même, tout en respectant le MDR pour les dispositifs Legacy connectés grâce à une capture passive sans modification firmware.
+\end{bridgekey}
+
+Conséquences : aucun marquage CE pour le middleware, aucune notification AFMPS au titre du middleware. La conformité MDR reste portée par les dispositifs amont. La conformité du DPI aval relève du responsable de traitement hospitalier \cite{mdr_2017_745,afmps}.
+
+\section{Pyramide mHealth Belgium adaptée}
+\label{sec:deploiement-mhealth}
+
+Le cadre mhealthbelgium.be propose trois niveaux M1, M2, M3 pour les apps de santé. Bien que conçu pour les apps, il fournit une grille de lecture utile au middleware \cite{mhealthbelgium_pyramide}.
+
+\bridgezebra
+\begin{tabular}{p{1.2cm}p{5cm}p{7.8cm}}
+\toprule
+\bridgeheader Niveau & Critères & Application au projet \\
+\midrule
+M1 & Exigences minimales (CE, AFMPS, RGPD) & Capture passive MDR-friendly, conformité RGPD, pas de marquage CE requis (statut non-DM) \\
+M2 & Sécurité, authentification, interopérabilité & mTLS, certificats eHealth, FHIR R4, profil IHE PCD \\
+M3 & Remboursement, valeur ajoutée prouvée & Hors-scope démo, dépend de l'industrialisation \\
+\bottomrule
+\end{tabular}
+
+La passerelle satisfait par construction M1 et vise M2 dès la mise en production. M3 dépend d'études médico-économiques hors stade démonstrateur.
+
+\section{Sept facteurs d'adoption appliqués}
+\label{sec:deploiement-adoption}
+
+\bridgezebra
+\begin{tabular}{p{4.5cm}p{9.5cm}}
+\toprule
+\bridgeheader Facteur & Mise en oeuvre projet \\
+\midrule
+Compréhension et formation & Documentation pour techniciens biomédicaux, dashboard explicite \\
+Interopérabilité & Coeur du projet : FHIR R4, LOINC, profil IHE PCD \\
+Engagement parties prenantes & Co-conception avec biomédicaux, médecins, infirmiers, DPO en phase prod \\
+Accessibilité et UX & Dashboard sobre, statut couleur immédiat, alertes mail \\
+Support et maintenance & Mises à jour OTA, profils JSON modifiables sans redémarrage \\
+Conformité & MDR (capture passive), RGPD (minimisation), certifications eHealth (en prod) \\
+Intégration aux flux & Pas de saisie manuelle ajoutée, données arrivent automatiquement au DPI \\
+\bottomrule
+\end{tabular}
+
+\section{Évaluation et indicateurs}
+\label{sec:deploiement-evaluation}
+
+Quatre catégories d'indicateurs structurent la preuve de valeur, chacune adressant une partie prenante (DSI, soignants, médecins, direction financière).
+
+\bridgezebra
+\begin{tabular}{p{3cm}p{6cm}p{5cm}}
+\toprule
+\bridgeheader Catégorie & Indicateur & Objectif \\
+\midrule
+Technique & Taux de transmission réussie & supérieur à 99\% \\
+Technique & Latence p95 bout-en-bout & inférieure à 500 ms \\
+Technique & Taux d'erreur de mapping & inférieur à 1\% \\
+Organisationnel & Minutes par jour économisées sur la saisie manuelle & supérieur à 30 min par soignant \\
+Organisationnel & Taux de re-saisie évité & supérieur à 90\% \\
+Clinique & Complétude du dossier patient & hausse mesurable trimestrielle \\
+Médico-économique & Coût par lit comparé à un parc neuf nativement connecté & inférieur d'un facteur 5 \\
+\bottomrule
+\end{tabular}
+
+L'argument médico-économique est central : la passerelle évite de jeter quinze ans d'investissement matériel. Le retour sur investissement se mesure en mois.
+
+\section{Perspectives industrialisation}
+\label{sec:deploiement-industrialisation}
+
+Le passage à l'échelle suppose un déploiement multi-services et multi-sites avec fédération de gateways supervisées centralement (cf. chapitre 14 du cahier des charges). Trois axes : orchestration SDN pour gérer un parc, plugins communautaires pour étendre le catalogue, fédération européenne EHDS pour le partage transfrontalier.

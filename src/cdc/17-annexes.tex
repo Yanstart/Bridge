@@ -1,0 +1,208 @@
+\appendix
+\chapter{Annexes}
+\label{ch:annexes}
+
+\section*{Annexe A : Mapping LOINC complet retenu pour la démo}
+\label{sec:annexe-loinc}
+\addcontentsline{toc}{section}{Annexe A : Mapping LOINC complet retenu pour la démo}
+
+Cette annexe consolide l'ensemble des codes LOINC publiés par les profils livrés avec la démo. Chaque mesure est associée à un code LOINC, à son unité conforme UCUM et au profil source. Les codes sont validés par grep automatique au démarrage du middleware.
+
+\bridgezebra
+\begin{longtable}{p{5.5cm}p{2cm}p{2cm}p{4.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Code LOINC} & {\color{white}\bfseries Unité} & {\color{white}\bfseries Profil source} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Code LOINC} & {\color{white}\bfseries Unité} & {\color{white}\bfseries Profil source} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Saturation pulsée O\textsubscript{2} & 59408-5 & \% & philips-mx450, masimo-radical7 \\
+  Fréquence cardiaque & 8867-4 & bpm & philips-mx450, masimo-radical7 \\
+  Pression artérielle systolique & 8480-6 & mmHg & philips-mx450 \\
+  Pression artérielle diastolique & 8462-4 & mmHg & philips-mx450 \\
+  Glycémie & 2339-0 & mg/dL & masimo-radical7 (alternative POC) \\
+  Volume expiratoire forcé 1 s & 20150-9 & L & vyaire-microlab \\
+  Capacité vitale forcée & 19868-9 & L & vyaire-microlab \\
+  Étude ECG 12 dérivations & 11524-6 & étude & welchallyn-cp150 \\
+  Fraction inspirée O\textsubscript{2} & 19994-3 & \% & drager-evita-v500 \\
+  Pression positive expiratoire & 20077-4 & cmH\textsubscript{2}O & drager-evita-v500 \\
+  Volume tidal & 76530-3 & mL & drager-evita-v500 \\
+  Fréquence respiratoire & 9279-1 & /min & drager-evita-v500, philips-mx450 \\
+\end{longtable}
+
+\section*{Annexe B : Exemple de Bundle FHIR R4 émis par la passerelle}
+\label{sec:annexe-bundle-fhir}
+\addcontentsline{toc}{section}{Annexe B : Exemple de Bundle FHIR R4 émis par la passerelle}
+
+Le Bundle ci-dessous est de type \texttt{transaction}. Il est issu d'une trame moniteur Philips IntelliVue MX450. Il contient trois ressources : Patient (référence simulée), Device (le moniteur lui-même) et Observation (la mesure SpO\textsubscript{2}).
+
+\begin{lstlisting}[style=bridgejson, caption={Bundle FHIR R4 transaction émis par la passerelle pour une mesure SpO2.}, label={lst:bundle-fhir}]
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:patient-demo-001",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "demo-001",
+        "identifier": [{
+          "system": "urn:oid:2.16.840.1.113883.2.4.6.3",
+          "value": "ROOM-12-DEMO"
+        }]
+      },
+      "request": {"method": "PUT", "url": "Patient/demo-001"}
+    },
+    {
+      "fullUrl": "urn:uuid:device-philips-mx450-001",
+      "resource": {
+        "resourceType": "Device",
+        "id": "philips-mx450-001",
+        "manufacturer": "Philips",
+        "modelNumber": "IntelliVue MX450"
+      },
+      "request": {"method": "PUT", "url": "Device/philips-mx450-001"}
+    },
+    {
+      "fullUrl": "urn:uuid:obs-spo2-12345",
+      "resource": {
+        "resourceType": "Observation",
+        "status": "final",
+        "code": {
+          "coding": [{
+            "system": "http://loinc.org",
+            "code": "59408-5",
+            "display": "Oxygen saturation in Arterial blood by Pulse oximetry"
+          }]
+        },
+        "subject": {"reference": "Patient/demo-001"},
+        "device": {"reference": "Device/philips-mx450-001"},
+        "effectiveDateTime": "2026-05-04T14:23:17Z",
+        "valueQuantity": {
+          "value": 96,
+          "unit": "%",
+          "system": "http://unitsofmeasure.org",
+          "code": "%"
+        }
+      },
+      "request": {"method": "POST", "url": "Observation"}
+    }
+  ]
+}
+\end{lstlisting}
+
+\section*{Annexe C : Plages de plausibilité retenues}
+\label{sec:annexe-plausibilite}
+\addcontentsline{toc}{section}{Annexe C : Plages de plausibilité retenues}
+
+Les plages cliniques utilisées par le Parser pour la mise en quarantaine sont listées ci-dessous. Une valeur hors plage déclenche la mise en quarantaine du message et le passage du dispositif en statut orange. Ces plages sont volontairement larges pour limiter les faux positifs en démo.
+
+\bridgezebra
+\begin{longtable}{p{6cm}p{3cm}p{3cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Min} & {\color{white}\bfseries Max} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Min} & {\color{white}\bfseries Max} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  SpO\textsubscript{2} & 50 \% & 100 \% \\
+  Fréquence cardiaque & 20 bpm & 300 bpm \\
+  Pression systolique & 40 mmHg & 260 mmHg \\
+  Pression diastolique & 20 mmHg & 200 mmHg \\
+  Glycémie & 20 mg/dL & 600 mg/dL \\
+  FEV1 & 0,2 L & 7 L \\
+  FVC & 0,2 L & 8 L \\
+  FiO\textsubscript{2} & 21 \% & 100 \% \\
+  PEEP & 0 cmH\textsubscript{2}O & 30 cmH\textsubscript{2}O \\
+  Volume tidal & 50 mL & 1500 mL \\
+  Fréquence respiratoire & 4 /min & 60 /min \\
+\end{longtable}
+
+\section*{Annexe D : Glossaire complet}
+\label{sec:annexe-glossaire}
+\addcontentsline{toc}{section}{Annexe D : Glossaire complet}
+
+Le glossaire formel est généré par le package \texttt{glossaries} (cf. \texttt{cdc/glossaire.tex}). Cette annexe en donne une vue lisible et tabulaire.
+
+\bridgezebra
+\begin{longtable}{p{3cm}p{12cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Sigle} & {\color{white}\bfseries Signification} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Sigle} & {\color{white}\bfseries Signification} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  AFMPS & Agence Fédérale des Médicaments et Produits de Santé (Belgique) \\
+  AIPD & Analyse d'Impact relative à la Protection des Données \\
+  APD & Autorité de Protection des Données \\
+  BIHR & Belgian Integrated Health Record \\
+  BLE & Bluetooth Low Energy \\
+  CIA & Confidentialité, Intégrité, Disponibilité (triade de sécurité) \\
+  DPI & Dossier Patient Informatisé \\
+  DPO & Data Protection Officer \\
+  ETEE & End-to-End Encryption (services eHealth) \\
+  FHIR & Fast Healthcare Interoperability Resources (HL7) \\
+  HL7 & Health Level Seven (organisation et famille de standards) \\
+  IHE & Integrating the Healthcare Enterprise \\
+  INAMI & Institut National d'Assurance Maladie-Invalidité \\
+  INS & Identifiant National de Santé \\
+  KMEHR & Kind Messages for Electronic Healthcare Record \\
+  LOINC & Logical Observation Identifiers Names and Codes \\
+  MDR & Medical Device Regulation (UE 2017/745) \\
+  MEDIBUS & Protocole série propriétaire Dräger pour ventilateurs \\
+  MLLP & Minimal Lower Layer Protocol (transport HL7 v2 sur TCP) \\
+  MoSCoW & Must, Should, Could, Won't (priorisation d'exigences) \\
+  MQTT & Message Queuing Telemetry Transport \\
+  mTLS & Mutual Transport Layer Security \\
+  OT & Operational Technology (parc opérationnel hospitalier) \\
+  PCD & Patient Care Device (profil IHE) \\
+  RACI & Responsible, Accountable, Consulted, Informed \\
+  RGPD & Règlement Général sur la Protection des Données (UE 2016/679) \\
+  SCP-ECG & Standard Communications Protocol for ECG (ISO 11073-91064) \\
+  TOML & Tom's Obvious, Minimal Language (format de manifeste plugin) \\
+\end{longtable}
+
+\section*{Annexe E : Profils dispositifs livrés avec la démo}
+\label{sec:annexe-profils}
+\addcontentsline{toc}{section}{Annexe E : Profils dispositifs livrés avec la démo}
+
+Cinq profils sont livrés avec la démo. Quatre couvrent les équipements représentatifs du parc hospitalier. Un cinquième, \texttt{example-temperature}, prouve la mécanique de plugin sur un capteur fictif minimal.
+
+\bridgezebra
+\begin{longtable}{p{3.5cm}p{3.5cm}p{3.5cm}p{4cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Profil} & {\color{white}\bfseries Canal} & {\color{white}\bfseries Format d'entrée} & {\color{white}\bfseries LOINC publiés} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Profil} & {\color{white}\bfseries Canal} & {\color{white}\bfseries Format d'entrée} & {\color{white}\bfseries LOINC publiés} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  philips-mx450 & TCP MLLP port 2575 & HL7 v2 ORU\textasciicircum{}R01 & 59408-5, 8867-4, 8480-6, 8462-4, 9279-1 \\
+  masimo-radical7 & MQTT topic devices/+/spo2 & JSON propriétaire & 59408-5, 8867-4 \\
+  welchallyn-cp150 & File-watcher dossier drop/ & SCP-ECG ISO 11073-91064 & 11524-6 \\
+  drager-evita-v500 & RS-232 socat 9600 8E1 & ASCII MEDIBUS & 19994-3, 20077-4, 76530-3, 9279-1 \\
+  example-temperature (plugin) & File-watcher & JSON & 8310-5 \\
+\end{longtable}

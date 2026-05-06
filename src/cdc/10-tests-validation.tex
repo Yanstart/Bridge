@@ -1,0 +1,101 @@
+\chapter{Plan de tests et validation}
+\label{ch:tests-validation}
+
+La stratégie de validation couvre cinq niveaux : tests unitaires, tests d'intégration, conformité aux standards, sécurité statique, et recette finale de la démo. Chaque niveau est outillé et chiffré. La présente section organise la passation, sans dupliquer les critères de recette déjà inscrits sur chaque exigence.
+
+\section{Stratégie de test}
+\label{sec:strategie-test}
+
+\bridgezebra
+\begin{longtable}{p{4cm}p{5cm}p{6cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Niveau} & {\color{white}\bfseries Outil} & {\color{white}\bfseries Couverture cible} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Niveau} & {\color{white}\bfseries Outil} & {\color{white}\bfseries Couverture cible} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Tests unitaires             & pytest                             & 80 \% de couverture \texttt{src/bridge/} \\
+  Tests d'intégration         & pytest et docker compose           & Tous les drivers Adapter et Parser \\
+  Conformité FHIR             & HAPI Validator (mode local)        & 100 \% des Bundles émis \\
+  Sécurité statique           & bandit, semgrep                    & 0 vulnérabilité high \\
+  Tests de minimisation       & script grep automatisé             & 0 valeur LOINC dans logs et mails \\
+  Tests de performance        & locust ou injecteur ad hoc         & ENF-PERF-001 et ENF-PERF-002 vérifiées \\
+\end{longtable}
+
+\section{Critères d'acceptation par exigence}
+\label{sec:criteres-acceptation}
+
+Chaque exigence fonctionnelle (chapitre~\ref{ch:exigences-fonctionnelles}) et non-fonctionnelle (chapitre~\ref{ch:exigences-non-fonctionnelles}) porte un critère de recette mesurable. Le présent chapitre n'en redonne pas la liste exhaustive. Il en organise la passation et la traçabilité.
+
+\begin{bridgeinfo}[Traçabilité]
+Chaque exigence porte un champ \emph{Recette} chiffré et un champ \emph{Lié à}. La recette se relit comme un test à passer. Les liens identifient les exigences voisines à exécuter en bloc. Un tableau de traçabilité consolidé figure en annexe et croise EF, ENF, lots du WBS et chapitres du cours TS6.
+\end{bridgeinfo}
+
+\section{Validation clinique des plages de plausibilité}
+\label{sec:plausibilite}
+
+Avant émission FHIR, la passerelle vérifie que chaque mesure tombe dans une plage cliniquement plausible. Les plages sont déclarées dans les profils JSON pour rester configurables. Toute valeur hors plage déclenche le passage en quarantaine et le basculement du statut équipement en orange (EF-PRS-005).
+
+\bridgezebra
+\begin{longtable}{p{4cm}p{4cm}p{4cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Plage acceptée} & {\color{white}\bfseries Action hors plage} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Plage acceptée} & {\color{white}\bfseries Action hors plage} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  SpO\textsubscript{2}     & 50 à 100 \%        & quarantaine et orange \\
+  Fréquence cardiaque      & 20 à 300 bpm       & quarantaine et orange \\
+  PA systolique            & 50 à 250 mmHg      & quarantaine et orange \\
+  PA diastolique           & 20 à 150 mmHg      & quarantaine et orange \\
+  Glycémie                 & 20 à 600 mg/dL     & quarantaine et orange \\
+  FiO\textsubscript{2}     & 21 à 100 \%        & quarantaine et orange \\
+\end{longtable}
+
+\section{Recette finale de la démo}
+\label{sec:recette-demo}
+
+La recette finale enchaîne dix étapes vérifiables sur le poste de l'auteur. Elle constitue le scénario rejoué pendant la démonstration et lors des trois répétitions à blanc avant remise.
+
+\bridgezebra
+\begin{longtable}{p{0.8cm}p{6cm}p{7.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries N} & {\color{white}\bfseries Étape} & {\color{white}\bfseries Critère} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries N} & {\color{white}\bfseries Étape} & {\color{white}\bfseries Critère} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  1  & \texttt{docker compose up -d}                              & Tous les conteneurs en statut healthy. \\
+  2  & Ouverture dashboard sur \texttt{localhost:8080}            & Page chargée en moins de 2 s, 4 équipements visibles en gris. \\
+  3  & Démarrage simulateur Philips                               & Statut passe au vert, ressources Observation visibles sur HAPI. \\
+  4  & Démarrage simulateur Masimo via MQTT                       & Statut passe au vert, Observation glycémie sur HAPI. \\
+  5  & Dépôt fichier SCP-ECG                                      & Traitement en moins de 2 s, ressource ECG sur HAPI. \\
+  6  & Démarrage simulateur Dräger RS-232                         & Statut au vert, FiO\textsubscript{2} et PEEP publiés. \\
+  7  & Injection trame défectueuse                                & Statut orange, contexte indicatif affiché, mail envoyé sans donnée patient. \\
+  8  & Coupure simulateur                                         & Statut rouge en moins de 30 s. \\
+  9  & Ajout d'un plugin \texttt{example-temperature}             & Détection automatique, statut chargé sur le dashboard. \\
+  10 & Inspection logs                                            & 0 valeur clinique horodatée trouvée par grep LOINC. \\
+\end{longtable}
+
+\section{Plan B en cas d'échec live}
+\label{sec:plan-b}
+
+Une vidéo enregistrée de la démo complète est conservée en local sur le poste de présentation. La lecture est déclenchée si l'environnement Docker pose problème lors de la session jury. La vidéo est produite à l'échéance du jalon J6 et rejouée lors des trois répétitions à blanc précédant la remise.

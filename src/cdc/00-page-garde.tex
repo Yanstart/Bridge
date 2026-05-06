@@ -1,0 +1,83 @@
+% =====================================================================
+% Page de garde — Cahier des Charges IoT Edge Bridge
+% =====================================================================
+
+\thispagestyle{empty}
+
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+
+  {\Large \textbf{EPHEC Brussels --- TS6 Technologies de la Santé}}\\[0.4cm]
+  {\large Année académique 2025--2026}\\[2.5cm]
+
+  \rule{\linewidth}{0.4pt}\\[0.4cm]
+  {\Huge \textbf{Cahier des Charges}}\\[0.4cm]
+  {\LARGE Démonstrateur dockerisé}\\[0.4cm]
+  {\LARGE \textit{IoT Edge Bridge}}\\[0.2cm]
+  {\large Passerelle d'interopérabilité Edge\\
+  pour l'intégration de dispositifs médicaux \textit{legacy} au BIHR}\\[0.3cm]
+  \rule{\linewidth}{0.4pt}\\[2.0cm]
+
+  \begin{minipage}{0.45\linewidth}
+    \begin{flushleft}
+      \textbf{Auteur}\\
+      Noël Junior Yando Fotso\\
+      \texttt{junior.noel@facsciences-uy1.cm}
+    \end{flushleft}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.45\linewidth}
+    \begin{flushright}
+      \textbf{Encadrant}\\
+      Matthieu Oliviers\\
+      \textbf{Date prévisionnelle de remise}\\
+      2 mars 2027
+    \end{flushright}
+  \end{minipage}\\[2.5cm]
+
+  \begin{center}
+    \textbf{Version du document : 1.0 --- 4 mai 2026}
+  \end{center}
+
+  \vfill
+
+  \footnotesize
+  \textit{Ce document est le cahier des charges du démonstrateur logiciel
+  associé au projet de fin d'année. Il guide l'implémentation d'une
+  passerelle configurable, multi-couches, présentée sous forme d'une
+  démonstration entièrement dockerisée. Il ne constitue pas un cahier
+  des charges industriel d'un produit commercial.}
+\end{titlepage}
+
+% --------------------------------------------------------------------
+% Contrôle des versions
+% --------------------------------------------------------------------
+\chapter*{Contrôle des versions}
+\addcontentsline{toc}{chapter}{Contrôle des versions}
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    \textbf{Version} & \textbf{Date} & \textbf{Auteur} & \textbf{Nature de la révision} \\
+    \midrule
+    0.1 & 2026-04-20 & N. J. Yando Fotso & Squelette initial, table des matières. \\
+    0.2 & 2026-04-28 & N. J. Yando Fotso & Périmètre, vision produit, use cases. \\
+    0.9 & 2026-05-02 & N. J. Yando Fotso & Exigences fonctionnelles et non fonctionnelles. \\
+    \textbf{1.0} & \textbf{2026-05-04} & \textbf{N. J. Yando Fotso} & \textbf{Première version consolidée pour le jury TS6.} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Journal des versions du présent cahier des charges.}
+  \label{tab:cdc-versions}
+\end{table}
+
+\noindent\textbf{Statut du document :} version de référence pour le
+développement de la démonstration. Toute modification ultérieure est
+tracée dans ce tableau et numérotée selon le schéma SemVer
+(\textit{majeur.mineur.correctif}).
+
+\noindent\textbf{Distribution :} document interne au projet, partagé
+avec le jury et l'encadrant pédagogique.
+
+\clearpage

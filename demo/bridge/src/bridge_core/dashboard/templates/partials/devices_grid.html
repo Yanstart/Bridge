@@ -1,0 +1,41 @@
+{% if statuses %}
+  {% for status in statuses %}
+    <a class="device-card device-{{ status.color }}" href="/devices/{{ status.device_id }}">
+      <header class="device-card-head">
+        <span class="dot dot-{{ status.color }}" aria-hidden="true"></span>
+        <h3 class="device-name">{{ status.name }}</h3>
+        <span class="device-status-label">{{ status.color | color_label }}</span>
+      </header>
+      <dl class="device-meta">
+        <div>
+          <dt>ID</dt>
+          <dd><code>{{ status.device_id }}</code></dd>
+        </div>
+        <div>
+          <dt>Derniere comm.</dt>
+          <dd>
+            {% if status.last_seen_utc %}
+              <time datetime="{{ status.last_seen_utc.isoformat() }}">{{ status.last_seen_utc.strftime('%H:%M:%S') }}</time>
+            {% else %}
+              <span class="muted">jamais</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt>Messages</dt>
+          <dd>
+            {{ status.messages_total }}
+            {% if status.messages_in_quarantine %}
+              <span class="badge-mini badge-amber">{{ status.messages_in_quarantine }} quarantaine</span>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+      {% if status.indicative_context %}
+        <p class="device-context">{{ status.indicative_context }}</p>
+      {% endif %}
+    </a>
+  {% endfor %}
+{% else %}
+  <p class="empty">Aucun equipement charge. Verifier le repertoire <code>profiles/</code>.</p>
+{% endif %}

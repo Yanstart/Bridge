@@ -1,0 +1,55 @@
+\chapter{Périmètre du projet}
+\label{ch:perimetre}
+
+\section{Périmètre fonctionnel inclus}
+\label{sec:in-scope}
+
+La démo couvre le cœur logiciel du middleware et son environnement de simulation immédiat.
+
+\begin{enumerate}
+  \item Quatre couches d'absorption (Adapter, Parser, Mapper, Transport), instanciées en Python et orchestrées par Docker Compose.
+  \item Quatre conteneurs simulateurs, un par canal d'entrée : Philips IntelliVue MX450 (TCP/HL7v2), Masimo Radical-7 (BLE simulé via MQTT), Welch Allyn CP150 (fichier SCP-ECG déposé), Dräger Evita V500 (RS-232 simulé via socat).
+  \item Un serveur HAPI FHIR local (image \texttt{hapiproject/hapi}), cible de publication des ressources FHIR R4.
+  \item Un dashboard web léger (FastAPI + HTMX) pour la configuration des profils et la supervision OT.
+  \item Un mécanisme de plugins avec un plugin exemple, prouvant l'extensibilité par dépôt de fichiers.
+\end{enumerate}
+
+\section{Hors-scope explicite}
+\label{sec:out-scope}
+
+La démo n'aborde pas les sujets suivants. Ils sont mentionnés en perspective au chapitre~\ref{ch:roadmap-risques}.
+
+\begin{enumerate}
+  \item Toute modification du firmware ou du câblage interne d'un dispositif médical réel.
+  \item L'aide à la prescription, la facturation INAMI, la pharmacie hospitalière.
+  \item L'interprétation clinique des signaux et toute fonction d'aide au diagnostic.
+  \item L'imagerie médicale et le protocole DICOM (réservés à une évolution ultérieure).
+  \item Le déploiement sur un parc multi-sites, l'orchestration SDN d'un parc de gateways, l'intégration EHDS européenne.
+\end{enumerate}
+
+\section{Acteurs et RACI simplifié}
+\label{sec:raci}
+
+Le RACI ci-dessous reflète la réalité d'un projet conduit par un développeur unique, encadré, et présenté à un jury académique.
+
+\begin{table}[h]
+  \centering
+  \caption{Matrice RACI simplifiée du projet IoT Edge Bridge.}
+  \label{tab:raci}
+  \begin{tabularx}{\linewidth}{Xccccc}
+    \toprule
+    \bridgeheader Activité & Auteur & Encadrant & Jury & Tech. BM & Legacy \\
+    \midrule
+    Spécification du middleware       & R, A & C & I & C & --- \\
+    Implémentation Python             & R, A & I & --- & --- & --- \\
+    Rédaction des livrables           & R, A & C & I & --- & --- \\
+    Validation académique             & I & R & A & --- & --- \\
+    Supervision OT (cible terrain)    & C & I & --- & R, A & I (passif) \\
+    Capture de données                & I & --- & --- & C & R (passif) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\textit{Légende : R = Réalise, A = Approuve, C = Consulté, I = Informé.}
+
+L'équipement Legacy figure dans la matrice comme acteur passif : il émet ses données existantes mais n'est ni modifié, ni piloté. Le technicien biomédical est le bénéficiaire cible terrain du dashboard. Il n'intervient pas dans la démo, mais le périmètre fonctionnel est dimensionné pour son usage futur.

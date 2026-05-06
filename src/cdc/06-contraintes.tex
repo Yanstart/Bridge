@@ -1,0 +1,71 @@
+\chapter{Contraintes}
+\label{ch:contraintes}
+
+Ce chapitre énumère les contraintes qui s'imposent à la conception et à la livraison de la démo. Trois catégories sont distinguées : réglementaires, techniques et organisationnelles.
+
+\section{Contraintes réglementaires}
+\label{sec:contraintes-reglementaires}
+
+Le contexte e-health belge est régi par deux corpus principaux : le règlement européen MDR 2017/745 sur les dispositifs médicaux et le règlement RGPD 2016/679 sur la protection des données. Les deux encadrent toute solution intégrée au parcours de soins, même périphérique.
+
+\begin{bridgekey}[Statut non-DM revendiqué]
+La passerelle est positionnée explicitement comme un middleware d'intégration IT, pas comme un dispositif médical. Elle effectue une capture passive : elle ne modifie ni le firmware, ni le câblage, ni le comportement des équipements amont. Elle ne pilote rien, ne décide rien, ne corrige rien. Ce statut simplifie la conformité MDR (pas de marquage CE, pas de classification IIa à revendiquer), clarifie la chaîne de responsabilité (les fabricants restent responsables de leurs DM, l'hôpital responsable de son SI) et permet un déploiement par contrat de sous-traitance classique. Référence : section 5 de \texttt{PROJECT.md}.
+\end{bridgekey}
+
+\subsection{Capture passive et MDR 2017/745}
+\label{subsec:mdr-capture-passive}
+
+La passerelle accède aux dispositifs en lecture seule, par les sorties prévues par les fabricants (port série de service, interface BLE de monitoring, fichier d'export, socket TCP HL7 v2). Elle ne modifie ni firmware, ni paramètres cliniques, ni rythme d'acquisition. Cette posture exclut la requalification du dispositif source comme DM modifié et préserve son marquage CE existant. Référence : \cite{mdr_2017_745}.
+
+\subsection{Conformité RGPD}
+\label{subsec:rgpd}
+
+Le bridge traite des données de santé au sens de l'article 9 du RGPD. Il applique le principe de minimisation décrit en section \ref{sec:enf-confidentialite}. La base légale (mission d'intérêt public en santé) et la durée de conservation sont fixées contractuellement par l'établissement de santé qui déploie la passerelle, conformément à la loi belge du 30 juillet 2018 sur la protection des données et à la loi du 22 août 2002 sur les droits du patient. La traçabilité des accès et des transmissions est couverte par les ENF du chapitre \ref{ch:exigences-non-fonctionnelles} et détaillée au chapitre dédié à la sécurité-conformité. Références : \cite{rgpd_2016_679}, \cite{loi_protection_donnees_2018}, \cite{loi_droits_patient_2002}.
+
+\subsection{Périmètre AFMPS}
+\label{subsec:afmps}
+
+L'AFMPS encadre la mise sur le marché des dispositifs médicaux et des médicaments en Belgique. La passerelle, en tant que middleware non-DM, ne fait pas l'objet d'une notification AFMPS au titre des dispositifs médicaux. L'établissement utilisateur reste tenu de ses obligations de vigilance vis-à-vis des DM amont. Référence : \cite{afmps}.
+
+\section{Contraintes techniques}
+\label{sec:contraintes-techniques}
+
+La stack est verrouillée pour la démo afin de garantir une compilation et un déploiement reproductibles. Elle reste extensible : chaque composant peut être remplacé sans toucher au cœur fonctionnel.
+
+\bridgezebra
+\begin{longtable}{p{4cm}p{4.5cm}p{6.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Composant} & {\color{white}\bfseries Choix} & {\color{white}\bfseries Justification} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Composant} & {\color{white}\bfseries Choix} & {\color{white}\bfseries Justification} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Langage             & Python $\geq$ 3.11             & Maturité de l'écosystème santé (FHIR, HL7), typage moderne, productivité solo developer. \\
+  Framework web       & FastAPI                        & Async natif, OpenAPI auto-généré, intégration Pydantic v2. \\
+  Persistance locale  & SQLite mode WAL                & Fichier unique, zéro administration, mode WAL pour concurrence lecture/écriture. \\
+  Serveur FHIR cible  & \texttt{hapiproject/hapi}      & Conteneur officiel HAPI FHIR, validation R4 incluse, déploiement en une commande. \\
+  Broker MQTT         & \texttt{eclipse-mosquitto}     & Référence open source, image légère, BLE simulé via topics. \\
+  Orchestration       & Docker Compose                 & Démo reproductible en \texttt{docker compose up}, isolation des 4 simulateurs. \\
+  Pseudo-tty série    & \texttt{socat}                 & Création de paires pty pour simuler RS-232 sans matériel physique. \\
+  Frontend dashboard  & HTMX                           & Rendu serveur, interactivité sans bundler, courbe d'apprentissage minimale. \\
+  Validation profils  & Pydantic v2                    & Validation déclarative des profils JSON et des manifestes plugin. \\
+\end{longtable}
+
+Tous les composants sont open source et exécutables sur un laptop standard sans connexion Internet, une fois les images Docker mises en cache local. Cette propriété protège la démo contre les aléas réseau le jour de la soutenance.
+
+\section{Contraintes organisationnelles}
+\label{sec:contraintes-organisationnelles}
+
+Le projet est conduit par un seul développeur dans un cadre académique de fin de cycle. Les jalons et le périmètre sont calibrés pour cette configuration.
+
+\begin{bridgenote}[Profil solo developer]
+Un seul rédacteur et développeur (Noël Junior Yando Fotso), encadré académiquement par Matthieu OLIVIERS, jury TS6 EPHEC. Implications directes : périmètre démo strictement borné aux 4 simulateurs et au pipeline 4 couches, pas d'équipe pluridisciplinaire (DPO, RSSI, biomédical, juriste) mobilisable pour relire en amont, hypothèses validées en autonomie avec auto-revue par checklist documentée. Aucune dépendance critique à une partie tierce sur le chemin de livraison.
+\end{bridgenote}
+
+Les jalons projet sont alignés sur le calendrier académique TS6. La date de remise prévisionnelle est fixée au 2 mars 2027. Le planning détaillé figure dans le chapitre consacré au plan de réalisation, en aval du présent chapitre.

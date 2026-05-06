@@ -1,0 +1,104 @@
+\chapter{Éthique, sécurité et confidentialité}
+\label{ch:ethique-securite}
+
+Comment garantir confidentialité, intégrité, disponibilité, traçabilité et conformité légale tout au long du cycle de vie des données ? Ce chapitre articule la triade CIA augmentée de la traçabilité, la conformité RGPD, le cycle de vie de la donnée, la cartographie des risques, les services ETEE, la responsabilité éthique, la gouvernance et les normes ISO.
+
+\section{Triade CIA et traçabilité}
+\label{sec:ethique-cia}
+
+La sécurité de l'information en santé repose sur trois piliers historiques (confidentialité, intégrité, disponibilité), augmentés de la traçabilité dès lors que la responsabilité clinique est engagée.
+
+\bridgezebra
+\begin{tabular}{p{3cm}p{5cm}p{6.5cm}}
+\toprule
+\bridgeheader Pilier & Définition & Mise en oeuvre projet \\
+\midrule
+Confidentialité & Accès restreint aux personnes autorisées & Chiffrement TLS, principe de minimisation, dashboard sans donnée patient \\
+Intégrité & Données non altérées & Checksum SHA-256 sur file de repli, validation FHIR avant émission \\
+Disponibilité & Système accessible quand requis & Retry exponentiel, fallback SQLite, hot-reload des profils \\
+Traçabilité & Chaque action est journalisée & Logs JSON horodatés UTC, sans valeur clinique \\
+\bottomrule
+\end{tabular}
+
+\section{Conformité RGPD}
+\label{sec:ethique-rgpd}
+
+Le RGPD encadre tout traitement de données personnelles, et particulièrement les données de santé (catégorie particulière, art. 9).
+
+\bridgezebra
+\begin{tabular}{p{5.5cm}p{8.5cm}}
+\toprule
+\bridgeheader Obligation RGPD & Mise en oeuvre \\
+\midrule
+Registre des traitements (art. 30) & Documenté côté hôpital, esquissé en annexe du CDC \\
+Base légale (art. 6.1.e et 9.2.h) & Mission d'intérêt public en santé, exécution d'un contrat de soin \\
+Minimisation (art. 5) & Aucune donnée patient dans logs, dashboard, alertes \\
+Durée de conservation (art. 5) & Déterminée par le responsable de traitement (l'hôpital) \\
+Notification de violation (art. 33) & Procédure 72h documentée au CDC chapitre 12 \\
+Analyse d'impact (art. 35) & AIPD esquissée au CDC chapitre 12, AIPD complète obligatoire en prod \\
+Information des personnes (art. 13-14) & Portée par l'hôpital via la politique générale du DPI \\
+\bottomrule
+\end{tabular}
+
+Sources : \cite{rgpd_2016_679}, \cite{loi_protection_donnees_2018}, \cite{loi_droits_patient_2002}.
+
+Le partage des données vers les hubs régionaux (RSW, ABRUMET, CoZo) est conditionné à un consentement explicite du patient au partage hub, distinct du consentement RGPD général au traitement \cite{esante_wallonie_rgpd}.
+
+\section{Cycle de vie de la donnée de santé}
+\label{sec:ethique-cycle}
+
+Le cycle de vie comporte cinq étapes (écriture, lecture, modification, conservation, destruction), chacune portant ses risques et mesures.
+
+\bridgezebra
+\begin{tabular}{p{3.5cm}p{10.5cm}}
+\toprule
+\bridgeheader Étape & Mesure projet \\
+\midrule
+Écriture (capture) & Capture passive sans modification du dispositif \\
+Lecture et accès & Matrice d'accès du DPI selon le rôle, la relation thérapeutique vérifiée et le consentement du patient. \\
+Modification & Impossible côté passerelle, qui est read-only \\
+Conservation & File de repli locale chiffrée Fernet, durée limitée (24h max en démo) \\
+Destruction & Suppression effective du fichier SQLite à la fin de la démo \\
+\bottomrule
+\end{tabular}
+
+\section{Cartographie des risques}
+\label{sec:ethique-risques}
+
+Une analyse STRIDE simplifiée recense les risques majeurs (version détaillée au § 12 du CDC).
+
+\bridgezebra
+\begin{tabular}{p{3cm}p{5cm}p{6cm}}
+\toprule
+\bridgeheader Surface & Risque & Mesure \\
+\midrule
+Liaison Adapter & Injection de fausses observations & Validation Device ID, plages de plausibilité \\
+Parser Layer & Buffer overflow ou DoS & Timeout, taille max, file de quarantaine \\
+Mapper Layer & Mapping erroné, mauvaise unité & Validation FHIR, tests unitaires \\
+Transport Layer & MITM sur HAPI & mTLS optionnel en démo, obligatoire en prod \\
+Stockage local & Lecture du SQLite par un attaquant local & Chiffrement Fernet, OS minimal \\
+Plugin tiers & Plugin malveillant & Validation manifeste TOML, sandbox d'exécution \\
+\bottomrule
+\end{tabular}
+
+\section{Services ETEE de la plateforme eHealth}
+\label{sec:ethique-etee}
+
+Les services ETEE (ETKDepot, KGSS) assurent un chiffrement bout-en-bout entre acteurs autorisés. Hors-scope démo locale (qui s'arrête à mTLS vers HAPI), indispensables en production pour les hubs régionaux et MetaHub \cite{ehealth_services_base}.
+
+\section{Question éthique : qualité des données et responsabilité}
+\label{sec:ethique-responsabilite}
+
+Si le mapping introduit une erreur (mauvaise unité, mauvais code LOINC), qui est responsable ? La chaîne se contractualise. La passerelle prend la responsabilité du mapping syntaxique et sémantique, validé par tests automatisés. Le dispositif prend la responsabilité de la mesure (marquage CE). L'hôpital prend la responsabilité de l'interprétation et de la décision clinique.
+
+Un second risque éthique est la \emph{datafication} (collecter plus que nécessaire). La minimisation y répond : la passerelle ne capture que ce que le profil JSON déclare comme pertinent. Aucun flux n'est aspiré sans déclaration explicite.
+
+\section{Gouvernance des données}
+\label{sec:ethique-gouvernance}
+
+Les rôles RGPD : responsable de traitement = hôpital qui déploie ; éditeur de la passerelle = sous-traitant (art. 28), lié par contrat de sous-traitance ; DPO impliqué dès la conception (privacy by design, art. 25) \cite{esante_wallonie_rgpd}.
+
+\section{Normes ISO de référence}
+\label{sec:ethique-iso}
+
+Trois normes encadrent la sécurité de l'information en santé : ISO~13608 (sécurité des communications), ISO~27001 (SMSI), ISO~27799 (santé). Visées comme cibles de certification en production, non implémentées au stade démonstrateur \cite{iso_13608,iso_27001,iso_27799}.

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Plugins - IoT Edge Bridge{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <h1>Plugins de traduction</h1>
+  <p class="muted">Catalogue des plugins decouverts dans le repertoire <code>plugins/</code>. Chaque plugin enregistre des Adapter, Parser, Mapper ou Transport custom.</p>
+</header>
+
+{% if records %}
+  <section class="cards">
+    {% for r in records %}
+      <article class="plugin-card">
+        <header class="plugin-card-head">
+          <h2>{{ r.manifest.name }}</h2>
+          <span class="badge badge-info">v{{ r.manifest.version }}</span>
+          <span class="badge badge-gray">{{ r.manifest.layer }}</span>
+          {% if r.status == "loaded" %}
+            <span class="badge badge-green">charge</span>
+          {% elif r.status == "error" %}
+            <span class="badge badge-red">erreur</span>
+          {% else %}
+            <span class="badge badge-gray">decouvert</span>
+          {% endif %}
+        </header>
+        {% if r.manifest.description %}<p>{{ r.manifest.description }}</p>{% endif %}
+        {% if r.manifest.loinc_codes %}
+          <div class="loinc-list">
+            <strong>Codes LOINC declares :</strong>
+            {% for code in r.manifest.loinc_codes %}
+              <code>{{ code }}</code>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if r.error %}
+          <p class="plugin-error"><strong>Erreur :</strong> {{ r.error }}</p>
+        {% elif r.loaded_at %}
+          <p class="muted plugin-meta">Charge le {{ r.loaded_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</p>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <p class="empty">Aucun plugin decouvert. Deposer un dossier avec un <code>plugin.toml</code> dans <code>plugins/</code> pour qu'il apparaisse ici.</p>
+{% endif %}
+{% endblock %}

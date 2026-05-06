@@ -1,0 +1,58 @@
+% =====================================================================
+% figures/fig-chaine-capteur-actionneur.tex
+% Chaine canonique du cours : capteur -> microcontroleur -> communication
+%                          -> application -> actionneur
+% La passerelle se substitue au maillon Application.
+% =====================================================================
+\begin{tikzpicture}[
+  font=\sffamily,
+  every node/.style={font=\footnotesize\sffamily},
+  >={Stealth[length=2.5mm]},
+  thick,
+  block/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgeblue, fill=bridgeblue!8, text=bridgeblue,
+    minimum width=2.5cm, minimum height=1.1cm, align=center,
+    inner sep=3pt, font=\footnotesize\bfseries\sffamily
+  },
+  highlight/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgeteal, fill=bridgeteal!15, text=bridgeteal,
+    minimum width=2.5cm, minimum height=1.1cm, align=center,
+    inner sep=3pt, font=\footnotesize\bfseries\sffamily
+  },
+  flow/.style={-{Stealth[length=3mm]}, thick, draw=bridgeblue}
+]
+
+% --- Chaine horizontale ----------------------------------------------
+\node[block] (capt) at (0, 0) {Capteur};
+\node[block] (mcu)  at (3.0, 0) {Micro-\\contr\^oleur};
+\node[block] (comm) at (6.0, 0) {Module de\\communication};
+\node[highlight] (app) at (9.0, 0) {Application\\(notre passerelle)};
+\node[block] (act)  at (12.0, 0) {Actionneur};
+
+\draw[flow] (capt.east) -- (mcu.west);
+\draw[flow] (mcu.east)  -- (comm.west);
+\draw[flow] (comm.east) -- (app.west);
+\draw[flow] (app.east)  -- (act.west);
+
+% --- Annotations sous les blocs --------------------------------------
+\node[font=\scriptsize\itshape, color=bridgegray, align=center]
+  at ([yshift=-0.85cm]capt.south) {grandeur\\physique};
+\node[font=\scriptsize\itshape, color=bridgegray, align=center]
+  at ([yshift=-0.85cm]mcu.south) {numerise\\conditionne};
+\node[font=\scriptsize\itshape, color=bridgegray, align=center]
+  at ([yshift=-0.85cm]comm.south) {RS-232, BLE,\\TCP, fichier};
+\node[font=\scriptsize\itshape, color=bridgeteal, align=center]
+  at ([yshift=-0.85cm]app.south) {capture passive,\\transformation FHIR};
+\node[font=\scriptsize\itshape, color=bridgegray, align=center]
+  at ([yshift=-0.85cm]act.south) {pompe,\\alarme, etc.};
+
+% --- Surbrillance "passerelle" ---------------------------------------
+\draw[bridgeteal, thick, dashed, rounded corners=4pt]
+  ([xshift=-0.3cm, yshift=0.4cm]app.north west) rectangle
+  ([xshift=0.3cm, yshift=-0.4cm]app.south east);
+\node[anchor=south, font=\scriptsize\bfseries, color=bridgeteal]
+  at ([yshift=0.45cm]app.north) {Substitution};
+
+\end{tikzpicture}

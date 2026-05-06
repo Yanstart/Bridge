@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.name }} - IoT Edge Bridge{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+  <a href="/">Vue d'ensemble</a> &gt;
+  <span>{{ profile.name }}</span>
+</nav>
+
+<header class="device-header">
+  <div>
+    <h1>{{ profile.name }}</h1>
+    <p class="muted"><code>{{ profile.id }}</code></p>
+  </div>
+  {% if status %}
+    <div class="device-status-block">
+      <span class="dot dot-{{ status.color }} dot-large"></span>
+      <span class="device-status-label-large">{{ status.color | color_label }}</span>
+      {% if status.indicative_context %}
+        <p class="device-context-large">{{ status.indicative_context }}</p>
+      {% endif %}
+    </div>
+  {% endif %}
+</header>
+
+<section class="device-grid-2col">
+  <article class="panel">
+    <header class="panel-head"><h2>Profil</h2></header>
+    <dl class="kv">
+      <dt>Canal</dt><dd><code>{{ profile.channel.type }}</code></dd>
+      {% if profile.channel.host %}<dt>Host</dt><dd><code>{{ profile.channel.host }}</code></dd>{% endif %}
+      {% if profile.channel.port %}<dt>Port</dt><dd><code>{{ profile.channel.port }}</code></dd>{% endif %}
+      {% if profile.channel.topic %}<dt>Topic</dt><dd><code>{{ profile.channel.topic }}</code></dd>{% endif %}
+      {% if profile.channel.directory %}<dt>Repertoire</dt><dd><code>{{ profile.channel.directory }}</code></dd>{% endif %}
+      <dt>Parser</dt><dd><code>{{ profile.parser.type }}</code></dd>
+      <dt>Destination</dt><dd><code>{{ profile.destination.type }}</code></dd>
+      {% if profile.destination.url %}<dt>URL</dt><dd><code>{{ profile.destination.url }}</code></dd>{% endif %}
+      <dt>Fabricant</dt><dd>{{ profile.device_metadata.manufacturer }}</dd>
+      <dt>Modele</dt><dd>{{ profile.device_metadata.model_number }}</dd>
+    </dl>
+  </article>
+
+  <article class="panel">
+    <header class="panel-head"><h2>Mappings LOINC</h2></header>
+    <table class="data-table">
+      <thead>
+        <tr><th>LOINC</th><th>Libelle</th><th>Unite</th><th>Plage plausibilite</th></tr>
+      </thead>
+      <tbody>
+        {% for fm in profile.mapping.fields %}
+          <tr>
+            <td><code>{{ fm.loinc_code }}</code></td>
+            <td>{{ fm.loinc_display }}</td>
+            <td>{{ fm.unit }}</td>
+            <td>
+              {% if fm.plausibility %}
+                {{ fm.plausibility.min }} - {{ fm.plausibility.max }}
+              {% else %}
+                <span class="muted">non bornee</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+
+<section class="panel">
+  <header class="panel-head"><h2>Timeline</h2></header>
+  {% include "partials/events_list.html" %}
+</section>
+{% endblock %}

@@ -1,0 +1,86 @@
+% =====================================================================
+% cdc.tex - Cahier des charges (CDC) de la demo IoT Edge Bridge
+% Projet TS6 - Noel Junior Yando Fotso - EPHEC 2025-2026
+% Compilation : latexmk -xelatex -shell-escape cdc.tex
+% =====================================================================
+\documentclass[11pt,a4paper,french]{scrreprt}
+
+\input{bridge-preamble.tex}
+
+% --- Packages additionnels propres au CDC ---------------------------
+\usepackage[acronym]{glossaries}
+\usepackage{pgfgantt}
+\usepackage{enumitem}
+
+\setcounter{secnumdepth}{4}
+
+\addbibresource{references.bib}
+
+% --- Metadonnees -----------------------------------------------------
+\title{Cahier des charges --- IoT Edge Bridge}
+\subtitle{Version 0.1}
+\author{No\"el Junior Yando Fotso}
+\date{2 mars 2026}
+
+\makeglossaries
+\input{cdc/glossaire.tex}
+
+% =====================================================================
+\begin{document}
+
+% --- Page de garde ---------------------------------------------------
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\color{bridgeblue}\Huge\bfseries Cahier des charges\par}
+  \vspace{0.5cm}
+  {\color{bridgeteal}\LARGE IoT Edge Bridge\par}
+  \vspace{0.5cm}
+  {\large Version 0.1\par}
+  \vspace{2cm}
+  {\itshape
+   Cahier des charges de la d\'emonstration\\
+   Projet de Technologies de la Sant\'e (TS6)\par}
+  \vfill
+  \begin{tabular}{rl}
+    \textbf{Auteur}        & No\"el Junior Yando Fotso \\
+    \textbf{Encadrant}     & Matthieu OLIVIERS         \\
+    \textbf{\'Etablissement} & EPHEC Brussels           \\
+    \textbf{Date}          & 2 mars 2026               \\
+    \textbf{Version}       & 0.1                       \\
+  \end{tabular}
+  \vspace{1cm}
+\end{titlepage}
+
+% --- Tables ----------------------------------------------------------
+\tableofcontents
+\cleardoublepage
+\listoffigures
+\cleardoublepage
+\listoftables
+\cleardoublepage
+
+% --- Corps -----------------------------------------------------------
+\input{cdc/00-page-garde.tex}
+\input{cdc/01-contexte.tex}
+\input{cdc/02-perimetre.tex}
+\input{cdc/03-solution.tex}
+\input{cdc/04-exigences-fonctionnelles.tex}
+\input{cdc/05-exigences-non-fonctionnelles.tex}
+\input{cdc/06-contraintes.tex}
+\input{cdc/07-architecture-technique.tex}
+\input{cdc/08-standards.tex}
+\input{cdc/09-plan-realisation.tex}
+\input{cdc/10-tests-validation.tex}
+\input{cdc/11-deploiement.tex}
+\input{cdc/12-securite-conformite.tex}
+\input{cdc/13-budget-ressources.tex}
+\input{cdc/14-roadmap-risques.tex}
+\input{cdc/15-gouvernance.tex}
+\input{cdc/16-reception-cloture.tex}
+\input{cdc/17-annexes.tex}
+
+% --- Bibliographie ---------------------------------------------------
+\printbibliography
+
+\end{document}

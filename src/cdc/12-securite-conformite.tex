@@ -1,0 +1,141 @@
+\chapter{Sécurité et conformité}
+\label{ch:securite-conformite}
+
+Ce chapitre cartographie les risques sur les surfaces du middleware, liste les mesures techniques et organisationnelles à mettre en place, et esquisse une AIPD au sens de l'article 35 du RGPD. L'approche reste pragmatique pour la démo, mais déploie le vocabulaire complet d'un déploiement hospitalier. Référence : \cite{rgpd_2016_679}.
+
+\section{Analyse de risques (STRIDE simplifié)}
+\label{sec:securite-stride}
+
+STRIDE est un cadre Microsoft qui classe les menaces en six catégories : Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege. Le tableau suivant l'applique aux surfaces du middleware.
+
+\bridgezebra
+\begin{longtable}{p{2.8cm}p{2.5cm}p{4.5cm}p{4.2cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Surface} & {\color{white}\bfseries Risque STRIDE} & {\color{white}\bfseries Description} & {\color{white}\bfseries Mesure} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Surface} & {\color{white}\bfseries Risque STRIDE} & {\color{white}\bfseries Description} & {\color{white}\bfseries Mesure} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Adapter Layer    & Spoofing               & Un attaquant simule un dispositif Legacy        & Validation Device ID et IP whitelisting \\
+  Adapter Layer    & Tampering              & Injection de trames forgées sur le canal        & Schéma de profil JSON strict, plages de plausibilité \\
+  Parser Layer     & Denial of Service      & Trames volumineuses ou malformées               & Timeouts, taille max, file de quarantaine \\
+  Mapper Layer     & Information disclosure & Log accidentel d'une valeur clinique            & Règle de minimisation EF-DSH-006 et ENF-CONF-001 \\
+  Transport Layer  & Tampering              & Attaque MITM entre bridge et HAPI               & mTLS optionnel en démo, obligatoire en prod (EF-TRP-004) \\
+  Transport Layer  & Repudiation            & Perte d'un message sans trace                   & Logs structurés EF-PUB-002, checksum SHA-256 ENF-SEC-001 \\
+  Dashboard        & Elevation of privilege & Accès admin non autorisé                        & Démo sans auth, prod OIDC eHealth \\
+  Dashboard        & Information disclosure & Exposition d'une donnée patient                 & Règle de minimisation EF-DSH-006 \\
+  Plugin Manager   & Tampering              & Plugin malveillant chargé                       & Validation manifeste TOML, sandbox d'exécution \\
+\end{longtable}
+
+\section{Mesures techniques}
+\label{sec:securite-mesures-techniques}
+
+Les mesures techniques sont implémentées dans le code de la démo ou explicitement prévues comme points de configuration pour la production.
+
+\bridgezebra
+\begin{longtable}{p{4.5cm}p{9.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Domaine} & {\color{white}\bfseries Mesure} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Domaine} & {\color{white}\bfseries Mesure} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Confidentialité en transit  & TLS 1.3 mTLS obligatoire en production (EF-TRP-004) \\
+  Confidentialité au repos    & Fernet sur file de repli SQLite (ENF-SEC-002) \\
+  Intégrité                   & Checksum SHA-256 sur messages persistés (ENF-SEC-001) \\
+  Disponibilité               & Retry exponentiel et fallback locale (EF-TRP-002, EF-TRP-003) \\
+  Traçabilité                 & Logs JSON horodatés UTC (EF-PUB-002, ENF-MTN-001) \\
+  Validation entrée           & Schémas Pydantic v2 et plages cliniques de plausibilité \\
+  Isolation                   & Exécution conteneurisée avec utilisateur non root \\
+  Hot patch                   & Hot-reload des profils sans redémarrage (EF-ADP-006) \\
+\end{longtable}
+
+\section{Mesures organisationnelles}
+\label{sec:securite-mesures-organisationnelles}
+
+Pour la démo solo, les mesures organisationnelles sont allégées au strict minimum cohérent avec un projet académique. Pour la production hospitalière, elles deviennent indispensables et conditionnent le marquage du middleware comme acceptable par la DSI.
+
+\bridgezebra
+\begin{longtable}{p{4cm}p{4.5cm}p{5.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Application en démo} & {\color{white}\bfseries Application en production} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Mesure} & {\color{white}\bfseries Application en démo} & {\color{white}\bfseries Application en production} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Désignation DPO          & Non requise         & Obligatoire (RGPD art. 37) \\
+  Registre des traitements & Esquisse en annexe  & Obligatoire (RGPD art. 30) \\
+  Contrat de sous-traitance & Non requis         & Obligatoire si éditeur tiers (RGPD art. 28) \\
+  Formation techniciens BM & Non requise         & Plan de formation pluri-annuel \\
+  Revue de code            & Auto-revue auteur   & Revue par pair RSSI ou DPO \\
+  Audit annuel             & Non requis          & ISO 27001 et 27799 visés en cible \\
+\end{longtable}
+
+\section{Synthèse d'analyse d'impact (AIPD)}
+\label{sec:securite-aipd}
+
+La passerelle traite des données de santé, catégorie particulière au sens de l'article 9 du RGPD. Une AIPD complète est obligatoire avant tout déploiement hospitalier réel. Cette section en donne une esquisse pour information.
+
+\bridgezebra
+\begin{longtable}{p{4.5cm}p{9.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Question AIPD} & {\color{white}\bfseries Réponse} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Question AIPD} & {\color{white}\bfseries Réponse} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Finalité du traitement    & Acheminer les mesures cliniques des dispositifs Legacy au DPI et au BIHR \\
+  Base légale               & Mission d'intérêt public en santé (art. 6.1.e), exécution d'un contrat de soin (art. 9.2.h) \\
+  Catégories de données     & Données de santé, identifiants patient en production, jamais en démo \\
+  Catégories de personnes   & Patients hospitalisés \\
+  Destinataires             & DPI hospitalier, MetaHub régionaux, BIHR \\
+  Durée de conservation     & Définie par le responsable de traitement (l'hôpital), pas par la passerelle \\
+  Mesures de sécurité       & Section précédente (mesures techniques et organisationnelles) \\
+  Mesures de minimisation   & ENF-CONF-001 et ENF-CONF-002 \\
+  Risque résiduel           & Faible en démo (no-PII), modéré en prod, atténué par mTLS, logs no-PII et AIPD complète \\
+\end{longtable}
+
+\begin{bridgewarn}[AIPD complète obligatoire en production]
+Avant tout déploiement réel, une AIPD formelle doit être conduite par le DPO de l'établissement, avec consultation des parties prenantes (RSSI, biomédical, juriste, représentants des patients). Référence : \cite{rgpd_2016_679}, art. 35.
+\end{bridgewarn}
+
+\section{Procédure de notification de violation de données}
+\label{sec:securite-notification}
+
+L'article 33 du RGPD impose une notification à l'APD dans les 72 heures suivant la prise de connaissance d'une violation. La procédure suivante définit les cinq étapes opérationnelles.
+
+\begin{enumerate}
+  \item Détection : alerte SIEM ou anomalie observée par un technicien biomédical.
+  \item Qualification : le DPO confirme la violation (compromission, perte, accès non autorisé).
+  \item Confinement : isolement de la passerelle, rotation immédiate des certificats.
+  \item Notification APD : sous 72 heures via le formulaire en ligne de l'autorité belge.
+  \item Information des personnes concernées : si le risque pour les droits et libertés est élevé.
+\end{enumerate}
+
+\begin{bridgenote}[Hors-scope démo]
+La procédure complète est documentée pour assurer la cohérence du CDC. Elle ne s'applique pas à la démo locale, qui ne traite aucune donnée patient réelle.
+\end{bridgenote}

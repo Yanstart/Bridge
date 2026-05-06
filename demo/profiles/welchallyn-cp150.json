@@ -1,0 +1,52 @@
+{
+  "id": "welchallyn-cp150",
+  "name": "Welch Allyn CP150 ECG",
+  "enabled": true,
+  "channel": {
+    "type": "file_watcher",
+    "directory": "/app/drop",
+    "file_pattern": "welchallyn-*.json"
+  },
+  "parser": {
+    "type": "json",
+    "encoding": "utf-8"
+  },
+  "mapping": {
+    "fields": [
+      {
+        "source_path": "$.heart_rate",
+        "loinc_code": "8867-4",
+        "loinc_display": "Heart rate",
+        "unit": "bpm",
+        "ucum_code": "/min",
+        "plausibility": { "min": 20, "max": 300 }
+      },
+      {
+        "source_path": "$.pr_interval_ms",
+        "loinc_code": "8625-6",
+        "loinc_display": "P-R Interval",
+        "unit": "ms",
+        "ucum_code": "ms",
+        "plausibility": { "min": 80, "max": 300 }
+      },
+      {
+        "source_path": "$.qt_interval_ms",
+        "loinc_code": "8634-8",
+        "loinc_display": "Q-T interval",
+        "unit": "ms",
+        "ucum_code": "ms",
+        "plausibility": { "min": 200, "max": 500 }
+      }
+    ]
+  },
+  "destination": {
+    "type": "fhir_hapi",
+    "url": "http://hapi:8080/fhir",
+    "timeout_seconds": 10.0
+  },
+  "device_metadata": {
+    "manufacturer": "Welch Allyn",
+    "model_number": "CP150",
+    "serial_number": "DEMO-CP150-001"
+  }
+}

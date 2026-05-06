@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration - IoT Edge Bridge{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <h1>Configuration des profils</h1>
+  <p class="muted">Vue lecture des profils JSON charges. L'edition guidee arrive au sprint 7.</p>
+</header>
+
+{% for profile in profiles %}
+  <article class="panel">
+    <header class="panel-head">
+      <h2>{{ profile.name }}</h2>
+      <code class="muted">{{ profile.id }}</code>
+      {% if profile.enabled %}
+        <span class="badge badge-green">active</span>
+      {% else %}
+        <span class="badge badge-gray">desactivee</span>
+      {% endif %}
+    </header>
+    <div class="config-block">
+      <h3>1. Canal de communication</h3>
+      <dl class="kv">
+        <dt>Type</dt><dd><code>{{ profile.channel.type }}</code></dd>
+        {% if profile.channel.host %}<dt>Host</dt><dd><code>{{ profile.channel.host }}</code></dd>{% endif %}
+        {% if profile.channel.port %}<dt>Port</dt><dd><code>{{ profile.channel.port }}</code></dd>{% endif %}
+        {% if profile.channel.topic %}<dt>Topic MQTT</dt><dd><code>{{ profile.channel.topic }}</code></dd>{% endif %}
+        {% if profile.channel.directory %}<dt>Repertoire</dt><dd><code>{{ profile.channel.directory }}</code></dd>{% endif %}
+        {% if profile.channel.file_pattern %}<dt>Pattern fichiers</dt><dd><code>{{ profile.channel.file_pattern }}</code></dd>{% endif %}
+        {% if profile.channel.baudrate %}<dt>Baudrate</dt><dd>{{ profile.channel.baudrate }}</dd>{% endif %}
+        {% if profile.channel.bits %}<dt>Bits</dt><dd>{{ profile.channel.bits }}</dd>{% endif %}
+      </dl>
+
+      <h3>2. Format / langue</h3>
+      <dl class="kv">
+        <dt>Type</dt><dd><code>{{ profile.parser.type }}</code></dd>
+        <dt>Encodage</dt><dd>{{ profile.parser.encoding }}</dd>
+        {% if profile.parser.message_type %}<dt>Type message</dt><dd>{{ profile.parser.message_type }}</dd>{% endif %}
+      </dl>
+
+      <h3>3. Destination configuree</h3>
+      <dl class="kv">
+        <dt>Type</dt><dd><code>{{ profile.destination.type }}</code></dd>
+        {% if profile.destination.url %}<dt>URL</dt><dd><code>{{ profile.destination.url }}</code></dd>{% endif %}
+        <dt>Timeout</dt><dd>{{ profile.destination.timeout_seconds }} s</dd>
+        <dt>Retry max</dt><dd>{{ profile.destination.retry_max }}</dd>
+        <dt>mTLS</dt><dd>{% if profile.destination.mtls_enabled %}active{% else %}inactif{% endif %}</dd>
+      </dl>
+    </div>
+  </article>
+{% endfor %}
+{% endblock %}

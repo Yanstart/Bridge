@@ -1,0 +1,113 @@
+% =====================================================================
+% Chapitre 4 : Architecture technologique de l'e-health
+% =====================================================================
+\chapter{Architecture technologique de l'e-health}
+\label{ch:reseau}
+
+Ce chapitre relit le projet par le modèle OSI, justifie l'architecture edge, expose les compromis réseau et détaille la chaîne de sécurité.
+
+\section{Le modèle OSI comme grille de lecture}
+\label{sec:osi}
+
+Le modèle OSI à sept couches situe chaque protocole et identifie la couche responsable d'un dysfonctionnement. La passerelle traverse les sept couches : trames hétérogènes en couches basses côté dispositif, messages standardisés en couches hautes côté plateforme.
+
+\begin{table}[h]
+  \centering
+  \caption{Pile OSI traduite par la passerelle, du dispositif Legacy à la plateforme moderne.}
+  \label{tab:osi-pile}
+  \bridgezebra
+  \begin{tabular}{p{3.0cm} p{5.5cm} p{5.5cm}}
+    \toprule
+    \bridgeheader Couche & Côté dispositif Legacy & Côté plateforme moderne \\
+    \midrule
+    7 Application & Format propriétaire ou HL7 v2 & HL7 FHIR R4 (REST) \\
+    6 Présentation & ASCII binaire propriétaire & JSON ou OAuth 2.0 \\
+    5 Session & SIP éventuel & HTTPS persistante \\
+    4 Transport & Série ou TCP brut & TCP + TLS 1.3 \\
+    3 Réseau & IPv4 local & IPv4 ou IPv6 routée \\
+    2 Liaison & RS-232, RS-485, Bluetooth Classic & Ethernet ou Wi-Fi WPA3 \\
+    1 Physique & DB-9, USB, ondes 2,4 GHz & Cat 6, fibre ou 5G \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+La passerelle est un traducteur de pile : elle absorbe une pile pauvre, faiblement sécurisée et non routable, et émet sur une pile riche, chiffrée et fédérée. Cette lecture par couches structure aussi le diagnostic en exploitation.
+
+\section{Chaîne canonique capteur-application-actionneur}
+\label{sec:chaine-capteur}
+
+Le cours TS6 propose une chaîne fonctionnelle universelle pour situer toute brique d'un système IoT médical. La passerelle s'y substitue au maillon \emph{application}, sans toucher aux maillons amont.
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/fig-chaine-capteur-actionneur.tex}}
+  \caption{Chaîne canonique IoT médicale et position de la passerelle.}
+  \label{fig:rapport-chaine-capteur}
+\end{figure}
+
+Côté réseau, le parcours d'un message traverse plusieurs équipements actifs : commutateurs, routeurs, points d'accès Wi-Fi, et la passerelle elle-même au sens applicatif. La sécurité de bout en bout repose donc sur la coordination de ces éléments, et non sur un seul nœud.
+
+\section{Mesures réseau et compromis}
+\label{sec:mesures}
+
+Trois mesures décrivent le transport : latence (ms), débit (octets/s) et bande passante. Ces grandeurs entrent en compromis selon le cas d'usage.
+
+\begin{table}[h]
+  \centering
+  \caption{Cas d'usage et priorités réseau associées.}
+  \label{tab:cas-usage}
+  \bridgezebra
+  \begin{tabular}{p{6.0cm} p{8.0cm}}
+    \toprule
+    \bridgeheader Cas d'usage & Priorités \\
+    \midrule
+    Télémonitoring chronique (notre cas) & Fiabilité, autonomie, débit modéré \\
+    Bloc opératoire connecté & Latence basse, déterminisme strict \\
+    Échographe portable & Bande passante élevée \\
+    Glucomètre point of care & Autonomie batterie, fiabilité ponctuelle \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Architecture edge plutôt que cloud}
+\label{sec:edge}
+
+Quatre arguments justifient le bord de réseau hospitalier : latence locale sous-milliseconde côté dispositif, souveraineté des données (flux jamais sortis du périmètre sans contrôle), robustesse en cas de coupure WAN (buffer local persistant), respect du principe RGPD de minimisation. Le choix d'un middleware physique répond aux contraintes matérielles : compatibilité ports série historiques, isolation des dispositifs critiques sur VLAN dédié, surface d'attaque réduite (la passerelle est le seul équipement de la zone à parler vers l'extérieur).
+
+\section{Sécurité réseau}
+\label{sec:secu-reseau}
+
+La sécurité du transport s'articule autour de quatre dispositifs complémentaires.
+
+\subsection{Segmentation et VLAN}
+
+Les dispositifs sont placés sur un VLAN dédié, isolé du reste du réseau hospitalier. La passerelle est le seul point de sortie autorisé. Cette segmentation respecte le principe de cloisonnement de l'ISO 27799 \cite{iso_27799} et limite le mouvement latéral en cas de compromission.
+
+\subsection{Chiffrement en transit}
+
+TLS 1.3 en sortie apporte confidentialité, intégrité et résistance aux attaques par rejeu. mTLS est imposé vers le DPI, conformément à l'ISO 13608 \cite{iso_13608}. Les liaisons Legacy en entrée (RS-232, BLE classique) ne sont pas chiffrables nativement : VLAN dédié et capture passive constituent alors la défense.
+
+\subsection{Services ETEE de la plateforme eHealth}
+
+Pour les échanges via MetaHub ou eHealthBox, la plateforme eHealth fournit les services ETKDepot (dépôt de clés publiques) et KGSS (génération de clés de session) pour chiffrer un message KMEHR \cite{ehealth_services_base}. Hors-scope démo, mentionné pour la mise en production.
+
+\subsection{Authentification de l'institution}
+
+L'institution dispose d'un certificat eHealth comme identité forte vers BIHR, MetaHub et eHealthBox. Pour les échanges privés vers un DPI propriétaire, mTLS sortant s'applique avec un certificat émis par l'AC interne de l'hôpital.
+
+\section{Pipeline réseau de la passerelle}
+\label{sec:pipeline-reseau}
+
+La chaîne Adapter, Parser, Mapper, Transport (cf. § 3.7) produit ou consomme un format différent à chaque couche, et la sécurité s'applique uniformément en aval du Mapper. Le pipeline complet, files de repli locales et rejeu en cas d'échec, est documenté en annexe B du cahier des charges.
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/fig-pipeline-4couches.tex}}
+  \caption{Pipeline fonctionnel de la passerelle, lu sous l'angle réseau.}
+  \label{fig:rapport-pipeline-reseau}
+\end{figure}
+
+\section{Perspective : SDN et orchestration multi-gateways}
+\label{sec:sdn}
+
+Un grand hôpital peut compter plusieurs dizaines de passerelles par étage ou service. Une approche SDN ou une orchestration Kubernetes permet le provisioning centralisé, les mises à jour et la micro-segmentation dynamique. Évolution traitée au chapitre 14 du cahier des charges.

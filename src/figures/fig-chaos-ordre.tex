@@ -1,0 +1,112 @@
+% =====================================================================
+% figures/fig-chaos-ordre.tex
+% Vision narrative : du chaos des dispositifs au continuum BIHR.
+% Trois zones de gauche a droite : chaos (rouge), bridge (bleu), ordre (vert).
+% =====================================================================
+\begin{tikzpicture}[
+  font=\sffamily,
+  every node/.style={font=\small\sffamily},
+  >={Stealth[length=2.5mm]},
+  thick,
+  device/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgealert, fill=bridgealert!10, text=bridgealert,
+    minimum width=2.4cm, minimum height=0.7cm,
+    inner sep=2pt, font=\small\sffamily
+  },
+  proto/.style={
+    font=\scriptsize\itshape, color=bridgegray,
+    inner sep=1pt
+  },
+  layer/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgeblue, fill=bridgeblue!10, text=bridgeblue,
+    minimum width=3.2cm, minimum height=0.7cm,
+    inner sep=2pt, font=\small\sffamily
+  },
+  target/.style={
+    rectangle, rounded corners=2pt,
+    draw=bridgegreen, fill=bridgegreen!10, text=bridgegreen,
+    minimum width=3.2cm, minimum height=0.7cm,
+    inner sep=2pt, font=\small\sffamily
+  },
+  zonebox/.style={rounded corners=4pt, thick, fill opacity=1},
+  flowarrow/.style={-{Stealth[length=3mm]}, very thick}
+]
+
+% =====================================================================
+% Zone 1 : Chaos (gauche) - dispositifs alignes verticalement
+% =====================================================================
+\node[zonebox, draw=bridgealert!70, dashed, fill=bridgealert!4,
+      minimum width=5.0cm, minimum height=6.0cm,
+      anchor=north west, label={[anchor=north, font=\small\bfseries,
+                                 color=bridgealert, yshift=-4pt]north:Chaos cote sources}]
+      (chaoszone) at (0, 6.0) {};
+
+% Mix dispositifs IoT et logiciels Legacy alignes verticalement
+\node[device] (d1) at (1.4, 4.6) {Moniteur};
+\node[device] (d2) at (1.4, 3.85) {Glucometre};
+\node[device] (d3) at (1.4, 3.10) {Pompe};
+\node[device] (d4) at (1.4, 2.35) {Logiciel labo};
+\node[device] (d5) at (1.4, 1.60) {DMS Legacy};
+\node[device] (d6) at (1.4, 0.85) {Export Excel};
+
+% Etiquettes de protocole / format a droite
+\node[proto, anchor=west] at ([xshift=2pt]d1.east) {RS-232};
+\node[proto, anchor=west] at ([xshift=2pt]d2.east) {BLE/JSON};
+\node[proto, anchor=west] at ([xshift=2pt]d3.east) {MEDIBUS};
+\node[proto, anchor=west] at ([xshift=2pt]d4.east) {HL7v2};
+\node[proto, anchor=west] at ([xshift=2pt]d5.east) {XML maison};
+\node[proto, anchor=west] at ([xshift=2pt]d6.east) {CSV/XLSX};
+
+% =====================================================================
+% Zone 2 : Bridge (centre) - 4 couches empilees
+% =====================================================================
+\node[zonebox, draw=bridgeblue, fill=bridgeblue!4,
+      minimum width=4.4cm, minimum height=6.0cm,
+      anchor=north west, label={[anchor=north, font=\small\bfseries,
+                                 color=bridgeblue, yshift=-4pt]north:IoT Edge Bridge}]
+      (bridgezone) at (6.0, 6.0) {};
+
+\node[layer] (adapter) at (8.2, 4.7) {Adapter};
+\node[layer] (parser)  at (8.2, 3.8) {Parser};
+\node[layer] (mapper)  at (8.2, 2.9) {Mapper};
+\node[layer] (transp)  at (8.2, 2.0) {Transport};
+
+\draw[bridgeflow] (adapter.south) -- (parser.north);
+\draw[bridgeflow] (parser.south)  -- (mapper.north);
+\draw[bridgeflow] (mapper.south)  -- (transp.north);
+
+\node[font=\scriptsize\itshape, color=bridgegray, anchor=north]
+  at (8.2, 1.45) {Profils JSON + plugins};
+
+% =====================================================================
+% Zone 3 : Ordre (droite) - destinataires alignes verticalement
+% =====================================================================
+\node[zonebox, draw=bridgegreen!70, fill=bridgegreen!4,
+      minimum width=5.0cm, minimum height=6.0cm,
+      anchor=north west, label={[anchor=north, font=\small\bfseries,
+                                 color=bridgegreen, yshift=-4pt]north:Ordre cote plateforme}]
+      (ordrezone) at (11.4, 6.0) {};
+
+\node[target] (fhir) at (13.9, 4.6) {HAPI FHIR R4};
+\node[target] (dpi)  at (13.9, 3.7) {DPI hospitalier};
+\node[target] (bihr) at (13.9, 2.8) {MetaHub / BIHR};
+\node[target] (cli)  at (13.9, 1.9) {Clinicien};
+
+\draw[bridgeflow] (fhir.south) -- (dpi.north);
+\draw[bridgeflow] (dpi.south)  -- (bihr.north);
+\draw[bridgeflow] (bihr.south) -- (cli.north);
+
+% =====================================================================
+% Fleches inter-zones, parfaitement horizontales au niveau du milieu
+% =====================================================================
+\draw[flowarrow, draw=bridgegray]
+  (chaoszone.east |- 0,3.5) -- (bridgezone.west |- 0,3.5)
+  node[midway, above, font=\scriptsize\itshape, color=bridgegray] {capture};
+
+\draw[flowarrow, draw=bridgegray]
+  (bridgezone.east |- 0,3.5) -- (ordrezone.west |- 0,3.5)
+  node[midway, above, font=\scriptsize\itshape, color=bridgegray] {publication};
+
+\end{tikzpicture}

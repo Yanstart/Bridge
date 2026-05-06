@@ -1,0 +1,45 @@
+{
+  "id": "masimo-radical7",
+  "name": "Masimo Radical-7",
+  "enabled": true,
+  "channel": {
+    "type": "mqtt",
+    "host": "mqtt",
+    "port": 1883,
+    "topic": "devices/masimo-radical7/spo2"
+  },
+  "parser": {
+    "type": "json",
+    "encoding": "utf-8"
+  },
+  "mapping": {
+    "fields": [
+      {
+        "source_path": "$.spo2",
+        "loinc_code": "59408-5",
+        "loinc_display": "Oxygen saturation in Arterial blood by Pulse oximetry",
+        "unit": "%",
+        "ucum_code": "%",
+        "plausibility": { "min": 50, "max": 100 }
+      },
+      {
+        "source_path": "$.pr",
+        "loinc_code": "8867-4",
+        "loinc_display": "Heart rate",
+        "unit": "bpm",
+        "ucum_code": "/min",
+        "plausibility": { "min": 20, "max": 300 }
+      }
+    ]
+  },
+  "destination": {
+    "type": "fhir_hapi",
+    "url": "http://hapi:8080/fhir",
+    "timeout_seconds": 10.0
+  },
+  "device_metadata": {
+    "manufacturer": "Masimo",
+    "model_number": "Radical-7",
+    "serial_number": "DEMO-RAD7-001"
+  }
+}

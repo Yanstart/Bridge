@@ -1,0 +1,357 @@
+% =====================================================================
+% references.bib
+% Bibliographie partagee des livrables IoT Edge Bridge
+% Format : biblatex (backend biber, style ieee)
+% Auteur : Noel Junior Yando Fotso, EPHEC TS6, 2025-2026
+% Conventions de cles : voir PROJECT.md section 10
+% =====================================================================
+
+% =====================================================================
+% A. Equipements (datasheets, manuels, implementations)
+% =====================================================================
+
+@manual{philips_mx450_techdata,
+  title        = {{IntelliVue MX450 Patient Monitor: Technical Data Sheet 866062}},
+  author       = {{Koninklijke Philips N.V.}},
+  organization = {Philips Healthcare},
+  year         = {2018},
+  url          = {https://www.biyomar.com/uploads/katalog/monitor-cihazlari/philips-mx-450.pdf},
+  urldate      = {2026-05-04},
+  note         = {Specification disponible publiquement via revendeur Biyomar}
+}
+
+@manual{philips_piic_ix,
+  title        = {{IntelliVue Information Center iX: Technical Data Sheet}},
+  author       = {{Koninklijke Philips N.V.}},
+  organization = {Philips Healthcare},
+  year         = {2019},
+  url          = {https://www.biyomar.com/uploads/katalog/monitor-cihazlari/piic-ix.pdf},
+  urldate      = {2026-05-04},
+  note         = {Documente l'export HL7 v2 sortant des moniteurs IntelliVue}
+}
+
+@online{ge_carescape_b105,
+  title        = {{CARESCAPE B105 and B125 Patient Monitors}},
+  author       = {{GE HealthCare}},
+  organization = {GE HealthCare},
+  year         = {2024},
+  url          = {https://www.gehealthcare.com/products/patient-monitoring/patient-monitors/b105-and-b125-patient-monitors},
+  urldate      = {2026-05-04}
+}
+
+@manual{masimo_radical7_manual,
+  title        = {{Radical-7 Pulse CO-Oximeter Operator's Manual}},
+  author       = {{Masimo Corporation}},
+  organization = {Masimo Corporation},
+  number       = {LAB-5475},
+  year         = {2020},
+  url          = {https://techdocs.masimo.com/globalassets/techdocs/pdf/lab-5475j_master.pdf},
+  urldate      = {2026-05-04}
+}
+
+@manual{roche_accuchek_inform2,
+  title        = {{Accu-Chek Inform II System Operator's Manual, Version 8}},
+  author       = {{Roche Diagnostics}},
+  organization = {Roche Diagnostics},
+  number       = {08424705001},
+  year         = {2022},
+  url          = {https://diagnostics.roche.com/content/dam/diagnostics/us/en/products/a/accu-chek-inform-ii/toolkit/AC_Inform_II_Operators_Manual_V8_08424705001_05_EN_USA.pdf},
+  urldate      = {2026-05-04}
+}
+
+@manual{vyaire_microlab_manual,
+  title        = {{MicroLab Spirometer Operating Manual, Revision 1.6}},
+  author       = {{Vyaire Medical, Inc.}},
+  organization = {Vyaire Medical},
+  number       = {085-73WW},
+  year         = {2019},
+  url          = {https://intl.vyaire.com/sites/intl/files/2019-05/085-73WW-Rev-1.6-MicroLab8-Operating-Part1.pdf},
+  urldate      = {2026-05-04}
+}
+
+@manual{welchallyn_cp150_dfu,
+  title        = {{CP 150 12-Lead Resting Electrocardiograph: Directions for Use}},
+  author       = {{Hillrom (Welch Allyn)}},
+  organization = {Hillrom},
+  number       = {80023839},
+  year         = {2021},
+  url          = {https://www.hillrom.com/content/dam/hillrom-aem/us/en/sap-documents/LIT/80023/80023839LITPDF.pdf},
+  urldate      = {2026-05-04}
+}
+
+@manual{bbraun_infusomat_space,
+  title        = {{Infusomat Space Large Volume Infusion Pump: Instructions for Use}},
+  author       = {{B. Braun Medical Inc.}},
+  organization = {B. Braun Medical},
+  year         = {2020},
+  url          = {https://www.bbraunusa.com/content/dam/catalog/bbraun/bbraunProductCatalog/S/AEM2015/en-us/b154/infusomat-space-largevolumepumpifu-softwareuitemnumbers8713051u8.pdf},
+  urldate      = {2026-05-04}
+}
+
+@manual{draeger_evita_v500_ifu,
+  title        = {{Evita Infinity V500 Supplement Instructions for Use, Software 2.n}},
+  author       = {{Drager Medical GmbH}},
+  organization = {Drager Medical},
+  number       = {9054353},
+  year         = {2018},
+  url          = {https://www.draeger.com/Content/Documents/Products/IfU_SP_Evita_Infinity_V500_SW_2.n_EN_9054353.pdf},
+  urldate      = {2026-05-04}
+}
+
+@manual{draeger_medibus_protocol,
+  title        = {{MEDIBUS Protocol Definition for Drager Devices}},
+  author       = {{Drager Medical GmbH}},
+  organization = {Drager Medical},
+  number       = {9028329},
+  year         = {2010},
+  url          = {https://www.scribd.com/document/577534892/Medibus-9028329},
+  urldate      = {2026-05-04},
+  note         = {Specification disponible publiquement, RS-232 ASCII trame STX/ETX}
+}
+
+@online{mdpnp_medibus_impl,
+  title        = {{Medibus.java: Drager MEDIBUS Reference Implementation in Java}},
+  author       = {{MD PnP Program}},
+  organization = {Medical Device Plug-and-Play Interoperability Lab},
+  year         = {2017},
+  url          = {https://github.com/mdpnp/mdpnp/blob/master/devices/draeger/src/main/java/org/mdpnp/devices/draeger/medibus/Medibus.java},
+  urldate      = {2026-05-04},
+  note         = {Implementation de reference open source utilisee pour la simulation Docker}
+}
+
+% =====================================================================
+% B. Standards d'interoperabilite et securite
+% =====================================================================
+
+@online{hl7_fhir_r4,
+  title        = {{HL7 FHIR Release 4 Specification}},
+  author       = {{Health Level Seven International}},
+  organization = {HL7 International},
+  year         = {2019},
+  url          = {https://hl7.org/fhir/R4/},
+  urldate      = {2026-05-04}
+}
+
+@online{hl7_v2,
+  title        = {{HL7 Version 2 Messaging Standard}},
+  author       = {{Health Level Seven International}},
+  organization = {HL7 International},
+  year         = {2018},
+  url          = {https://www.hl7.org/implement/standards/product_brief.cfm?product_id=185},
+  urldate      = {2026-05-04}
+}
+
+@online{ihe_pcd_tf,
+  title        = {{IHE Patient Care Device (PCD) Technical Framework}},
+  author       = {{Integrating the Healthcare Enterprise}},
+  organization = {IHE International},
+  year         = {2023},
+  url          = {https://www.ihe.net/resources/technical_frameworks/#pcd},
+  urldate      = {2026-05-04}
+}
+
+@manual{dicom_standard,
+  title        = {{Digital Imaging and Communications in Medicine (DICOM) Standard}},
+  author       = {{National Electrical Manufacturers Association}},
+  organization = {NEMA},
+  year         = {2024},
+  url          = {https://www.dicomstandard.org/current},
+  urldate      = {2026-05-04}
+}
+
+@online{kmehr_spec,
+  title        = {{KMEHR: Kind Messages for Electronic Healthcare Record Specification}},
+  author       = {{Plateforme eHealth}},
+  organization = {eHealth Belgique},
+  year         = {2023},
+  url          = {https://www.ehealth.fgov.be/standards/kmehr/},
+  urldate      = {2026-05-04}
+}
+
+@manual{iso_13606,
+  title        = {{ISO 13606: Health informatics, Electronic health record communication}},
+  author       = {{International Organization for Standardization}},
+  organization = {ISO},
+  year         = {2019},
+  url          = {https://www.iso.org/standard/67868.html},
+  urldate      = {2026-05-04}
+}
+
+@manual{iso_13608,
+  title        = {{ISO 13608: Health informatics, Service architecture}},
+  author       = {{International Organization for Standardization}},
+  organization = {ISO},
+  year         = {2019},
+  url          = {https://www.iso.org/standard/76097.html},
+  urldate      = {2026-05-04},
+  note         = {Specification disponible via achat ISO}
+}
+
+@manual{iso_27001,
+  title        = {{ISO/IEC 27001: Information security, cybersecurity and privacy protection, Information security management systems}},
+  author       = {{International Organization for Standardization}},
+  organization = {ISO/IEC},
+  year         = {2022},
+  url          = {https://www.iso.org/standard/27001},
+  urldate      = {2026-05-04}
+}
+
+@manual{iso_27799,
+  title        = {{ISO 27799: Health informatics, Information security management in health using ISO/IEC 27002}},
+  author       = {{International Organization for Standardization}},
+  organization = {ISO},
+  year         = {2016},
+  url          = {https://www.iso.org/standard/62777.html},
+  urldate      = {2026-05-04}
+}
+
+% =====================================================================
+% C. Cadre reglementaire (UE et belge)
+% =====================================================================
+
+@misc{mdr_2017_745,
+  title        = {{Reglement (UE) 2017/745 du Parlement europeen et du Conseil du 5 avril 2017 relatif aux dispositifs medicaux}},
+  author       = {{Union Europeenne}},
+  organization = {Journal officiel de l'Union europeenne},
+  year         = {2017},
+  url          = {https://eur-lex.europa.eu/eli/reg/2017/745/oj},
+  urldate      = {2026-05-04}
+}
+
+@misc{ivdr_2017_746,
+  title        = {{Reglement (UE) 2017/746 du Parlement europeen et du Conseil du 5 avril 2017 relatif aux dispositifs medicaux de diagnostic in vitro}},
+  author       = {{Union Europeenne}},
+  organization = {Journal officiel de l'Union europeenne},
+  year         = {2017},
+  url          = {https://eur-lex.europa.eu/eli/reg/2017/746/oj},
+  urldate      = {2026-05-04}
+}
+
+@misc{rgpd_2016_679,
+  title        = {{Reglement (UE) 2016/679 du Parlement europeen et du Conseil du 27 avril 2016 relatif a la protection des personnes physiques a l'egard du traitement des donnees a caractere personnel (RGPD)}},
+  author       = {{Union Europeenne}},
+  organization = {Journal officiel de l'Union europeenne},
+  year         = {2016},
+  url          = {https://eur-lex.europa.eu/eli/reg/2016/679/oj},
+  urldate      = {2026-05-04}
+}
+
+@misc{loi_droits_patient_2002,
+  title        = {{Loi du 22 aout 2002 relative aux droits du patient}},
+  author       = {{Royaume de Belgique}},
+  organization = {Moniteur belge},
+  year         = {2002},
+  url          = {https://www.ejustice.just.fgov.be/eli/loi/2002/08/22/2002022737/justel},
+  urldate      = {2026-05-04}
+}
+
+@misc{loi_protection_donnees_2018,
+  title        = {{Loi du 30 juillet 2018 relative a la protection des personnes physiques a l'egard des traitements de donnees a caractere personnel}},
+  author       = {{Royaume de Belgique}},
+  organization = {Moniteur belge},
+  year         = {2018},
+  url          = {https://www.ejustice.just.fgov.be/eli/loi/2018/07/30/2018040581/justel},
+  urldate      = {2026-05-04}
+}
+
+% =====================================================================
+% D. Belgique e-sante (BIHR, MetaHub, eHealth, KCE, Wallonie)
+% =====================================================================
+
+@online{bihr_overview,
+  title        = {{Belgian Integrated Health Record (BIHR)}},
+  author       = {{Plateforme eHealth}},
+  organization = {eHealth Belgique},
+  year         = {2024},
+  url          = {https://www.ehealth.fgov.be/ehealthplatform/fr/service-belgian-integrated-health-record-bihr},
+  urldate      = {2026-05-04}
+}
+
+@online{metahub_overview,
+  title        = {{MetaHub: Index national des references aux donnees de sante}},
+  author       = {{Plateforme eHealth}},
+  organization = {eHealth Belgique},
+  year         = {2024},
+  url          = {https://www.ehealth.fgov.be/ehealthplatform/fr/service-metahub},
+  urldate      = {2026-05-04}
+}
+
+@online{ehealth_services_base,
+  title        = {{Services de base eHealth: ETEE, eHealthBox, MyCareNet, Timestamping}},
+  author       = {{Plateforme eHealth}},
+  organization = {eHealth Belgique},
+  year         = {2024},
+  url          = {https://www.ehealth.fgov.be/ehealthplatform/fr/services-de-base},
+  urldate      = {2026-05-04}
+}
+
+@online{mhealthbelgium_pyramide,
+  title        = {{Pyramide de validation mHealth M1/M2/M3}},
+  author       = {{mHealthBelgium}},
+  organization = {mHealthBelgium},
+  year         = {2023},
+  url          = {https://mhealthbelgium.be/fr/pyramide-de-validation},
+  urldate      = {2026-05-04}
+}
+
+@misc{plan_esante_2025_2027,
+  title        = {{Plan d'action interfederal eSante 2025-2027}},
+  author       = {{Conference interministerielle Sante publique}},
+  organization = {SPF Sante publique},
+  year         = {2024},
+  url          = {https://www.health.belgium.be/fr/sante/plan-daction-esante},
+  urldate      = {2026-05-04},
+  note         = {Plan d'action interfederal cite dans le chapitre 1 du rapport}
+}
+
+@report{kce_362_dpi,
+  title        = {{KCE Report 362: Dossier Patient Informatise hospitalier en Belgique}},
+  author       = {{Centre federal d'expertise des soins de sante (KCE)}},
+  organization = {KCE Belgique},
+  number       = {362},
+  year         = {2022},
+  type         = {Rapport KCE},
+  url          = {https://kce.fgov.be/fr/publications/tous-les-rapports/dossier-patient-informatise-dans-les-hopitaux-belges},
+  urldate      = {2026-05-04}
+}
+
+@online{esante_wallonie_rgpd,
+  title        = {{Fiches RGPD pour les professionnels de sante (1 a 9)}},
+  author       = {{e-Sante Wallonie}},
+  organization = {Agence du Numerique, Region wallonne},
+  year         = {2023},
+  url          = {https://www.e-santewallonie.be/rgpd/},
+  urldate      = {2026-05-04}
+}
+
+% =====================================================================
+% E. Institutionnel
+% =====================================================================
+
+@report{oms_dhi_2023,
+  title        = {{Classification of Digital Health Interventions, version 2.0}},
+  author       = {{World Health Organization}},
+  organization = {WHO},
+  year         = {2023},
+  type         = {Rapport technique OMS},
+  url          = {https://www.who.int/publications/i/item/9789240081949},
+  urldate      = {2026-05-04}
+}
+
+@online{inami,
+  title        = {{Institut national d'assurance maladie-invalidite (INAMI)}},
+  author       = {{INAMI}},
+  organization = {Institut national d'assurance maladie-invalidite},
+  year         = {2024},
+  url          = {https://www.inami.fgov.be/},
+  urldate      = {2026-05-04}
+}
+
+@online{afmps,
+  title        = {{Agence federale des medicaments et des produits de sante (AFMPS)}},
+  author       = {{AFMPS}},
+  organization = {Agence federale des medicaments et des produits de sante},
+  year         = {2024},
+  url          = {https://www.afmps.be/},
+  urldate      = {2026-05-04}
+}

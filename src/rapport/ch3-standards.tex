@@ -1,0 +1,147 @@
+% =====================================================================
+% Chapitre 3 : Integration des dispositifs connectes (CŒUR du rapport)
+% =====================================================================
+\chapter{Intégration des dispositifs connectés dans les systèmes de santé}
+\label{ch:standards}
+
+Comment traduire les sorties propriétaires des dispositifs Legacy en standards acceptés par le BIHR ? Ce chapitre est le c{\oe}ur du rapport : trois couches d'interopérabilité, standards mobilisés (HL7 v2, FHIR R4, IHE PCD, LOINC, KMEHR, DICOM, SNOMED-CT), architecture de mapping et insertion dans le paysage belge.
+
+\section{Les trois couches d'interopérabilité}
+\label{sec:interop-3couches}
+
+\begin{table}[h]
+  \centering
+  \caption{Les trois couches d'interopérabilité.}
+  \label{tab:3couches}
+  \bridgezebra
+  \begin{tabular}{p{2.8cm} p{6.2cm} p{5.0cm}}
+    \toprule
+    \bridgeheader Couche & Question résolue & Standards \\
+    \midrule
+    Technique & Comment les bits passent-ils d'un système à l'autre ? & RS-232, BLE, MLLP, HTTPS \\
+    Syntaxique & Comment les bits sont-ils structurés en messages ? & HL7 v2, FHIR R4, KMEHR, DICOM \\
+    Sémantique & Quel sens partagé donner aux mêmes mots ? & LOINC, SNOMED-CT, ICD-10 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+La passerelle traverse les trois couches : l'Adapter résout la couche technique, le Parser et le Mapper résolvent les couches syntaxique et sémantique. Cette répartition reprend la philosophie IHE \cite{ihe_pcd_tf}.
+
+\section{Cinq défis structurels de l'interopérabilité}
+\label{sec:defis-interop}
+
+Au-delà des trois couches, le cours TS6 identifie cinq défis structurels que toute solution d'interopérabilité doit relever.
+
+\begin{table}[h]
+  \centering
+  \caption{Cinq défis de l'interopérabilité et leur traitement par la passerelle.}
+  \label{tab:5defis}
+  \bridgezebra
+  \begin{tabular}{p{4.5cm} p{10.0cm}}
+    \toprule
+    \bridgeheader Défi & Réponse de la passerelle \\
+    \midrule
+    Compatibilité technique entre fabricants & Adapters multi-protocoles, profils JSON par dispositif \\
+    Échange et interprétation cohérents & Mapper FHIR R4 + codification LOINC \\
+    Coordination des soins & Alimentation du DPI, base de la coordination clinique \\
+    Réduction des erreurs médicales & Suppression de la saisie manuelle, validation FHIR avant émission \\
+    Vue holistique du patient & Agrégation multi-sources dans le DPI puis le BIHR \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{HL7 v2 : le standard hospitalier historique}
+\label{sec:hl7v2}
+
+HL7 v2 (1989) reste le standard de messagerie clinique le plus déployé \cite{hl7_v2}. Il opère à la couche application OSI. Ses messages sont des chaînes ASCII pipe-delimited en segments : MSH (en-tête), PID (patient), OBR (requête), OBX (résultat). Variantes courantes : ORU\textasciicircum{}R01 (résultats), ADT (admissions), ORM (commandes). En démonstration, le simulateur Philips IntelliVue émet ORU\textasciicircum{}R01 over MLLP sur le port 2575. L'Adapter ouvre une socket TCP, reconnaît les délimiteurs MLLP (\texttt{0x0B}, \texttt{0x1C 0x0D}) et transmet au Parser, qui extrait les segments OBX et passe au Mapper. La passerelle convertit en FHIR R4, format pivot.
+
+\section{HL7 FHIR R4 : la modernité REST}
+\label{sec:fhir}
+
+HL7 FHIR R4 (2019) raisonne en ressources atomiques accessibles par API REST \cite{hl7_fhir_r4}. Ressources mobilisées : \texttt{Patient}, \texttt{Device}, \texttt{Observation}, \texttt{DeviceMetric}, \texttt{Bundle}. Format natif JSON. Chaque ressource peut être profilée et validée. La passerelle émet des Bundle de type \texttt{transaction} contenant \texttt{Patient}, \texttt{Device} et \texttt{Observation}. Le serveur cible (HAPI FHIR en démo, Omnipro ou H+ en production) persiste les ressources et renvoie les identifiants permanents. Un exemple complet figure en annexe B du cahier des charges.
+
+\section{IHE PCD : profil d'intégration des dispositifs}
+\label{sec:ihe-pcd}
+
+IHE orchestre l'usage coordonné de DICOM et HL7 par des profils d'intégration. Le domaine PCD (Patient Care Device) cible l'intégration des dispositifs au SI \cite{ihe_pcd_tf}. Le profil PCD-01, \emph{Communicate Patient Care Device Data}, formalise la transmission des données vitales. Notre Adapter joue le rôle de \emph{Device Observation Reporter} en transposant PCD-01 dans une implémentation Python configurable.
+
+\section{Vocabulaires sémantiques : LOINC et SNOMED-CT}
+\label{sec:loinc-snomed}
+
+LOINC code chaque grandeur biologique ou clinique mesurable. SNOMED-CT couvre un périmètre plus large incluant diagnostics, procédures et contextes \cite{hl7_fhir_r4}. La passerelle utilise LOINC pour codifier les observations. SNOMED-CT figure en perspective.
+
+\begin{table}[h]
+  \centering
+  \caption{Mesures principales et codes LOINC associés.}
+  \label{tab:loinc}
+  \bridgezebra
+  \begin{tabular}{p{4.2cm} p{2.6cm} p{6.5cm}}
+    \toprule
+    \bridgeheader Mesure & Code LOINC & Profil source \\
+    \midrule
+    Saturation en oxygène (SpO2) & 59408-5 & Moniteur Philips IntelliVue \\
+    Fréquence cardiaque & 8867-4 & Moniteur Philips IntelliVue \\
+    Pression artérielle systolique & 8480-6 & Moniteur Philips IntelliVue \\
+    Pression artérielle diastolique & 8462-4 & Moniteur Philips IntelliVue \\
+    Glycémie capillaire & 2339-0 & Glucomètre Masimo via BLE \\
+    Volume expiratoire forcé (VEMS) & 19868-9 & Spiromètre Vyaire MicroLab \\
+    Débit perfusion & 96821-9 & Pompe B. Braun Infusomat \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{KMEHR : le standard belge}
+\label{sec:kmehr}
+
+KMEHR (Kind Messages for Electronic Healthcare Record) est le format pivot des échanges électroniques de santé en Belgique. Format XML structuré en transactions thématiques (résultats labo, lettres de sortie, prescriptions) \cite{kmehr_spec}. Format attendu par eHealthBox et les hubs MetaHub : RSW, ABRUMET, CoZo \cite{ehealth_services_base}. La passerelle ne produit pas de KMEHR en démo ; une couche de sortie KMEHR figure en roadmap.
+
+\section{DICOM : pour mémoire}
+\label{sec:dicom}
+
+DICOM est le standard universel de l'imagerie médicale, couvrant format des images et protocoles d'échange entre modalités, PACS et stations \cite{dicom_standard}. La passerelle ne traite pas d'images en démo ; DICOM figure en roadmap pour le point-of-care imaging (échographie portable, ECG ambulatoire avec tracé).
+
+\section{Architecture de mapping de la passerelle}
+\label{sec:archi-mapping}
+
+Pipeline à quatre couches : Adapter (flux physiques), Parser (structures propriétaires vers objets normalisés), Mapper (profil JSON, codification LOINC), Transport (sérialisation FHIR R4 et envoi).
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\linewidth}{!}{\input{figures/fig-pipeline-4couches.tex}}
+  \caption{Pipeline fonctionnel à 4 couches de la passerelle, avec annotations des formats à chaque interface.}
+  \label{fig:rapport-pipeline}
+\end{figure}
+
+Chaque couche est un point d'extension. Un nouveau dispositif s'ajoute par un driver d'Adapter (canal nouveau), un module Parser (grammaire nouvelle) et un profil JSON. Transport et format de sortie restent stables. Cette séparation autorise une croissance par plugins (roadmap F1).
+
+\section{Workflow d'intégration au paysage belge}
+\label{sec:workflow-belge}
+
+Le scénario complet mobilise quatre maillons : identification patient via NISS et services de base eHealth (simulé par identifiant de chambre en démo), soumission FHIR au DPI hospitalier (HAPI FHIR en démo), publication conditionnelle au MetaHub via le hub régional compétent, consultation patient via MaSanté.be.
+
+\begin{bridgeinfo}[Hors-scope démo, mentionné par cohérence]
+Le hub régional, eHealthBox et MaSanté.be ne sont pas implémentés dans la démonstration. Le pipeline démontré s'arrête à la soumission FHIR vers le serveur HAPI local. Le passage à l'échelle suppose un certificat eHealth de l'institution et une intégration au hub régional compétent.
+\end{bridgeinfo}
+
+\section{Comparaison synthétique des standards}
+\label{sec:standards-synthese}
+
+\begin{table}[h]
+  \centering
+  \caption{Standards mobilisés et leur position dans la passerelle.}
+  \label{tab:standards-synthese}
+  \bridgezebra
+  \begin{tabular}{p{2.0cm} p{3.4cm} p{3.0cm} p{4.8cm}}
+    \toprule
+    \bridgeheader Standard & Domaine & Format & Position dans la passerelle \\
+    \midrule
+    HL7 v2 & Messages cliniques & ASCII pipe-delimited & Entrée Adapter (simulateur Philips) \\
+    FHIR R4 & Ressources REST & JSON & Sortie principale du Mapper et du Transport \\
+    IHE PCD & Profil d'intégration & Cadre de profils & Inspiration architecturale \\
+    LOINC & Codes de mesures & Codes courts & Codification dans le Mapper \\
+    KMEHR & Échange belge & XML & Hors-scope démo, roadmap \\
+    DICOM & Imagerie médicale & Format binaire & Hors-scope démo, roadmap \\
+    SNOMED-CT & Terminologie clinique & Codes longs & Hors-scope démo, roadmap \\
+    \bottomrule
+  \end{tabular}
+\end{table}

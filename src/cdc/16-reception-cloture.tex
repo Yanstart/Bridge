@@ -1,0 +1,45 @@
+\chapter{Critères de réception et clôture}
+\label{ch:reception-cloture}
+
+La réception du projet académique se mesure sur trois livrables documentaires, une démonstration technique opérationnelle et la qualité de la soutenance orale. Chaque critère est binaire et vérifiable.
+
+\section{Critères de réception}
+\label{sec:criteres-reception}
+
+Six critères structurent l'acceptation finale. Tous doivent être satisfaits pour clore le projet.
+
+\bridgezebra
+\begin{longtable}{p{5cm}p{10cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Critère} & {\color{white}\bfseries Mesure d'acceptation} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Critère} & {\color{white}\bfseries Mesure d'acceptation} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  CDC remis & Fichier \texttt{cdc.pdf} v1.0 compile sans erreur, 17 chapitres rédigés, signé par l'auteur \\
+  Rapport remis & Fichier \texttt{rapport.pdf} v1.0, 7 chapitres alignés sur le mapping cours TS6 \\
+  Pitch remis & Fichier \texttt{pitch.pdf} v1.0, 12 slides Beamer plus scénario de démo dockerisée \\
+  Démo opérationnelle & 4 simulateurs publient en FHIR sur HAPI sans intervention manuelle pendant 5 minutes \\
+  Présentation orale & Pitch tenu dans la durée (10 min) plus démo (5 min) plus séance de questions du jury \\
+  Aucune valeur clinique exposée & \texttt{grep} automatisé retourne 0 occurrence de code LOINC dans les logs publics \\
+\end{longtable}
+
+\section{Livraison finale}
+\label{sec:livraison-finale}
+
+Les trois PDF, le code source du middleware, les quatre conteneurs simulateurs Docker, les profils JSON et les plugins exemple sont livrés sur un dépôt Git fourni au jury à la date du 2 mars 2027. L'arborescence du dépôt suit la structure documentée au chapitre~\ref{ch:architecture-technique}. Un fichier \texttt{README.md} explique la procédure de lancement complète en moins de 10 lignes de commandes.
+
+\begin{bridgeinfo}[Cohérence inter-livrables]
+Les trois livrables sont alignés. Le rapport explique le quoi et le pourquoi (académique, sourcé, structuré par les chapitres du cours). Le CDC précise le comment et le combien (technique, prescriptif, mesurable). Le pitch présente le résultat (pédagogique, visuel, démontré). Les trois référencent les mêmes équipements, les mêmes exigences fonctionnelles et la même vision narrative chaos vers ordre.
+\end{bridgeinfo}
+
+\section{Clôture}
+\label{sec:cloture}
+
+À l'issue du jury, le projet entre dans une phase post-projet. Le code source reste disponible sur le dépôt Git. La roadmap F1 (plugins communautaires, cf. section~\ref{sec:roadmap-f1}) peut être engagée si l'auteur le souhaite, hors cadre académique. Aucune obligation de maintenance n'est prévue. Le CDC, le rapport et le pitch constituent l'archive de référence du projet.

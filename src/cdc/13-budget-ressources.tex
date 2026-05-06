@@ -1,0 +1,133 @@
+\chapter{Budget et ressources}
+\label{ch:budget-ressources}
+
+Ce chapitre chiffre la démo en jours-homme et en matériel, puis projette un budget indicatif pour un déploiement hospitalier industriel. Les estimations sont calibrées pour un solo developer en cadre académique. La projection production sert de repère pour le pitch et pour une éventuelle phase contractuelle.
+
+\section{Budget de la démo}
+\label{sec:budget-demo}
+
+Un seul développeur, du matériel personnel, des logiciels open source. Le tableau suivant détaille l'effort estimé pour chaque lot du plan de réalisation.
+
+\bridgezebra
+\begin{longtable}{p{3.5cm}p{2.5cm}p{8cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Lot} & {\color{white}\bfseries Effort estimé} & {\color{white}\bfseries Commentaire} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Lot} & {\color{white}\bfseries Effort estimé} & {\color{white}\bfseries Commentaire} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  L0 Cadrage                  & 5 J/H   & Charte, mapping cours, choix des équipements cibles \\
+  L1 CDC                      & 8 J/H   & Document présent, 17 chapitres et annexes \\
+  L2 Squelette code           & 3 J/H   & Initialisation dépôt, structure modulaire Python \\
+  L3 Adapter Layer            & 8 J/H   & 4 drivers (TCP, MQTT, fichier, série) et tests d'intégration \\
+  L4 Parser Layer             & 6 J/H   & 4 décodeurs et conversions d'unités \\
+  L5 Mapper Layer             & 5 J/H   & Codification LOINC et génération FHIR R4 \\
+  L6 Transport et persistance & 4 J/H   & httpx avec retry et SQLite chiffrée \\
+  L7 Dashboard                & 8 J/H   & FastAPI, HTMX et WebSocket \\
+  L8 Plugins                  & 4 J/H   & Plugin Manager et plugin exemple \\
+  L9 Conteneurisation         & 4 J/H   & 4 simulateurs Docker et docker-compose \\
+  L10 Pitch et démo           & 6 J/H   & Slides Beamer, scénario, vidéo de secours \\
+  L11 Rapport                 & 12 J/H  & Rédaction des 7 chapitres adossés au cours TS6 \\
+  \textbf{Total}              & \textbf{73 J/H} & Sur 10 mois calendaires d'octobre 2025 à juillet 2026 \\
+\end{longtable}
+
+\section{Coût matériel et licences}
+\label{sec:budget-materiel}
+
+Le coût matériel et logiciel reste nul. Cette propriété est volontaire. La passerelle prouve qu'on peut industrialiser un middleware d'interopérabilité sans budget initial significatif.
+
+\bridgezebra
+\begin{longtable}{p{4.5cm}p{2.5cm}p{7cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Poste} & {\color{white}\bfseries Coût} & {\color{white}\bfseries Commentaire} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Poste} & {\color{white}\bfseries Coût} & {\color{white}\bfseries Commentaire} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Laptop développeur            & existant   & Matériel personnel de l'auteur \\
+  Stack logicielle              & 0 EUR      & Python, Docker, FastAPI, HAPI FHIR, Mosquitto open source \\
+  Licences MiKTeX et VS Code    & 0 EUR      & Gratuit en usage non commercial \\
+  Compte cloud                  & 0 EUR      & Tout en local, aucune ressource hébergée \\
+  Convertisseur USB-série       & non requis & Simulé via socat \\
+  \textbf{Total}                & \textbf{0 EUR} & Démo entièrement gratuite \\
+\end{longtable}
+
+\section{Extrapolation pour un déploiement hospitalier}
+\label{sec:budget-extrapolation-prod}
+
+Cette section projette un budget indicatif pour un déploiement réel. Les chiffres sont à valider auprès du RSSI et de la DSI hospitalière en phase contractuelle.
+
+\begin{bridgenote}[Hypothèse de cadrage]
+Un service de soins intensifs de 12 lits, équipé de 4 familles de dispositifs (moniteurs multiparamétriques, pompes, ventilateurs, glucomètres). Une seule passerelle physique par service. Intégration au DPI hospitalier existant via FHIR R4.
+\end{bridgenote}
+
+\bridgezebra
+\begin{longtable}{p{4.5cm}p{3.5cm}p{6cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Poste} & {\color{white}\bfseries Estimation} & {\color{white}\bfseries Justification} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Poste} & {\color{white}\bfseries Estimation} & {\color{white}\bfseries Justification} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Industrialisation logicielle           & 80 J/H              & Audit code, tests étendus, durcissement, AIPD complète \\
+  Intégration au DPI cible               & 30 J/H              & Configuration FHIR, profils par fabricant, recettes \\
+  Validation clinique                    & 20 J/H              & Tests sur données réelles anonymisées \\
+  Documentation prod                     & 15 J/H              & Manuel d'exploitation, runbook incident \\
+  Hardware passerelle                    & 1 200 EUR           & NUC industriel ou Raspberry Pi 5 avec boîtier durci \\
+  Certificats eHealth                    & 200 EUR par an      & PKI eHealth Belgique \\
+  Hébergement supervision centralisée    & 600 EUR par an      & VM modeste pour collecte logs et métriques \\
+  Formation techniciens BM               & 5 J/H               & Atelier deux demi-journées \\
+  Maintenance corrective annuelle        & 20 J/H              & Bugs et mises à jour FHIR R4 et R5 \\
+  \textbf{Total CAPEX initial}           & \textbf{145 J/H et 1 200 EUR} & Coût d'investissement à la mise en service \\
+  \textbf{Total OPEX annuel}             & \textbf{25 J/H et 800 EUR}    & Coût récurrent d'exploitation \\
+\end{longtable}
+
+\section{Profils d'équipe pour la production}
+\label{sec:budget-profils-equipe}
+
+Un déploiement réel demande une équipe pluridisciplinaire qui n'existe pas en démo. Le tableau suivant liste les profils nécessaires et leurs rôles.
+
+\bridgezebra
+\begin{longtable}{p{4.5cm}p{9.5cm}}
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Profil} & {\color{white}\bfseries Rôle} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \rowcolor{bridgeblue!90}
+  {\color{white}\bfseries Profil} & {\color{white}\bfseries Rôle} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Architecte logiciel              & Conception, choix techniques, revue de code \\
+  Développeur Python senior        & Implémentation cœur middleware \\
+  Développeur Python embarqué      & Drivers série et MQTT, intégration matérielle \\
+  Ingénieur biomédical             & Protocoles dispositifs, validation clinique \\
+  DPO                              & AIPD, registre des traitements, conformité RGPD \\
+  RSSI                             & Architecture sécurité, mTLS, gestion certificats \\
+  DSI hospitalier                  & Intégration DPI, déploiement parc, gouvernance \\
+\end{longtable}
+
+\begin{bridgeinfo}[Différence majeure démo vs production]
+La démo solo livre un POC fonctionnel exécutable en \texttt{docker compose up}. La production exige une équipe pluridisciplinaire de 4 à 6 profils, environ 6 à 9 mois d'intégration à partir du POC, et un budget CAPEX initial de l'ordre de 145 J/H plus 1 200 EUR de matériel.
+\end{bridgeinfo}
