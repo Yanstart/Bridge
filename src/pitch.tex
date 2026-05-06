@@ -154,24 +154,38 @@
   \end{beamercolorbox}%
 }
 
-% --- Footer custom 3 zones : auteur | partie | chapitre + n slide ----
+% --- Footer custom 4 zones : auteur | partie | chapitre | nav + n slide
 % Variables sans @ pour eviter les problemes de catcode hors preambule.
 \newcommand{\PartCurrent}{}
 \newcommand{\ChCurrent}{}
 \newcommand{\partref}[1]{\renewcommand{\PartCurrent}{#1}}
 \newcommand{\chref}[1]{\renewcommand{\ChCurrent}{#1}}
 
+% --- Boutons de navigation cliquables --------------------------------
+% prev/next utilisent \hyperlink* Beamer (marchent dans TOUT lecteur PDF
+% qui supporte les liens). Le bouton plein ecran utilise \Acrobatmenu
+% (hyperref) qui marche en Adobe Acrobat (Windows/Mac) et la plupart
+% des lecteurs PDF natifs (pas dans les browsers).
+\newcommand{\NavBtn}[1]{\textcolor{bridgeblue}{\large#1}}
+
 \setbeamertemplate{footline}{%
   \leavevmode%
   \hbox{%
-    \begin{beamercolorbox}[wd=0.33\paperwidth,ht=2.5ex,dp=1ex,leftskip=2ex]{author in head/foot}%
+    \begin{beamercolorbox}[wd=0.24\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=2ex]{author in head/foot}%
       \usebeamerfont{author in head/foot}\insertshortauthor%
     \end{beamercolorbox}%
-    \begin{beamercolorbox}[wd=0.34\paperwidth,ht=2.5ex,dp=1ex,center]{title in head/foot}%
+    \begin{beamercolorbox}[wd=0.30\paperwidth,ht=2.8ex,dp=1.2ex,center]{title in head/foot}%
       \usebeamerfont{title in head/foot}\textcolor{bridgegray}{\PartCurrent}%
     \end{beamercolorbox}%
-    \begin{beamercolorbox}[wd=0.33\paperwidth,ht=2.5ex,dp=1ex,rightskip=2ex]{title in head/foot}%
-      \usebeamerfont{title in head/foot}\hfill\textcolor{bridgegray}{\ChCurrent}\quad\insertframenumber/\inserttotalframenumber%
+    \begin{beamercolorbox}[wd=0.18\paperwidth,ht=2.8ex,dp=1.2ex,center]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\textcolor{bridgegray}{\ChCurrent}%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.28\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=2ex,right]{title in head/foot}%
+      \usebeamerfont{title in head/foot}%
+      \hyperlinkslideprev{\NavBtn{\faChevronCircleLeft}}\,%
+      \Acrobatmenu{FullScreen}{\NavBtn{\faExpand}}\,%
+      \hyperlinkslidenext{\NavBtn{\faChevronCircleRight}}\quad%
+      \textcolor{bridgegray}{\insertframenumber/\inserttotalframenumber}%
     \end{beamercolorbox}%
   }%
 }

@@ -3,6 +3,20 @@
 Comment projeter `pdf/pitch.pdf` le jour J, naviguer entre les slides, et
 afficher les notes orateur sur un second ecran.
 
+## Boutons de navigation cliquables
+
+En bas a droite de chaque slide, trois boutons cliquables (en bleu bridge) :
+
+| Bouton | Action | Compatible |
+|---|---|---|
+| `⮘` | Slide precedente | Tous lecteurs PDF qui supportent les liens (Acrobat, Chrome, Edge, Firefox, SumatraPDF...) |
+| `⛶` | Bascule plein ecran | Adobe Acrobat Reader/Pro uniquement |
+| `⮚` | Slide suivante  | Tous lecteurs PDF qui supportent les liens |
+
+Le numero de slide courant et le total sont affiches a droite des boutons (`12/18`).
+
+> **Si le bouton plein ecran ne fait rien :** ton lecteur n'est pas Acrobat. Utilise alors `Ctrl+L` (Acrobat), `F11` (Chrome/Edge), ou les fleches du clavier (toujours disponibles).
+
 ## Generer les deux PDFs
 
 ```bash
