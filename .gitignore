@@ -36,6 +36,7 @@ latexmk/
 # --- PDFs intermediaires dans src/ (les livrables sont dans pdf/) ---
 src/rapport.pdf
 src/pitch.pdf
+src/pitch-notes.pdf
 src/cdc.pdf
 
 # --- Cache et editeurs ----------------------------------------------

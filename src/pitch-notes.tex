@@ -1,0 +1,14 @@
+% =====================================================================
+% pitch-notes.tex - Wrapper du pitch en mode "notes a droite".
+%
+% Ce fichier active le toggle \PRESENTERNOTES, puis charge pitch.tex
+% qui inclut alors pgfpages avec show notes on second screen=right.
+%
+% Compilation : latexmk -xelatex -shell-escape pitch-notes.tex
+% Resultat    : pitch-notes.pdf, chaque page = slide + notes cote a cote.
+%
+% Pour ouvrir avec les outils dual-ecran : voir docs/PRESENTATION.md.
+% =====================================================================
+
+\def\PRESENTERNOTES{1}
+\input{pitch.tex}

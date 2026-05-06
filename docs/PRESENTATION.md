@@ -1,0 +1,94 @@
+# Mode d'emploi presentation
+
+Comment projeter `pdf/pitch.pdf` le jour J, naviguer entre les slides, et
+afficher les notes orateur sur un second ecran.
+
+## Generer les deux PDFs
+
+```bash
+make pitch          # PDF de projection (slides seules)
+make pitch-notes    # PDF dual-ecran (slide a gauche + notes a droite)
+```
+
+Resultat dans `pdf/` :
+
+- `pitch.pdf` : **a projeter** sur le grand ecran. 18 slides 16:9, plein ecran automatique a l'ouverture.
+- `pitch-notes.pdf` : pour **toi**, sur ton portable. Chaque page contient la slide (gauche) et tes notes orateur (droite). Genere par `pgfpages` avec `show notes on second screen=right`.
+
+## Trois modes de projection
+
+### A. Adobe Acrobat Reader (le plus simple, Windows)
+
+1. Ouvre `pdf/pitch.pdf` dans Acrobat (s'ouvre en plein ecran automatiquement).
+2. Si pas en plein ecran : `Ctrl+L`.
+3. Sortie plein ecran : `Esc`.
+
+**Navigation :**
+
+| Touche                  | Action                          |
+|-------------------------|---------------------------------|
+| Fleche droite, Espace, PageDn | Slide suivante           |
+| Fleche gauche, BackSpace, PageUp | Slide precedente      |
+| Home / End              | Premiere / derniere slide       |
+| Esc                     | Quitter le plein ecran          |
+| Ctrl+L                  | Toggle plein ecran              |
+| Ctrl+- / Ctrl++         | Zoom (utile pour pointer)       |
+
+Pour les **notes orateur** sur un second ecran : ouvre `pitch-notes.pdf` dans une **deuxieme fenetre Acrobat** sur ton ecran prive, plein ecran. Les deux PDFs avancent **manuellement** (tu navigues les deux en parallele). Pas ideal mais ca marche.
+
+### B. pdfpc (presenter console, recommande)
+
+[pdfpc](https://pdfpc.github.io/) est l'outil pro pour presenter les PDFs Beamer. Il **lit nativement** les notes Beamer (le `\note{...}` que j'ai mis sous chaque frame).
+
+**Installation Windows :** WSL, ou via Chocolatey `choco install pdfpc`. Sur Linux : `apt install pdfpc`.
+
+**Lancement :**
+
+```bash
+pdfpc pdf/pitch.pdf
+```
+
+pdfpc detecte deux ecrans automatiquement :
+
+- **Ecran projecteur** : la slide en grand
+- **Ton ecran portable** : slide courante + slide suivante + notes + minuteur + horloge
+
+**Navigation :**
+
+| Touche                  | Action                                |
+|-------------------------|---------------------------------------|
+| Fleche droite, Espace   | Slide suivante                        |
+| Fleche gauche           | Slide precedente                      |
+| g                       | Aller a une slide (saisie numero)     |
+| b                       | Black out (ecran noir, ressaisir tout)|
+| f                       | Frozen (gele l'image projetee)        |
+| s                       | Start/stop minuteur                   |
+| r                       | Reset minuteur                        |
+| q ou Esc                | Quitter                               |
+
+### C. Beamer en mode "show notes on second screen"
+
+Si tu n'as ni pdfpc ni Acrobat, tu peux ouvrir `pitch-notes.pdf` dans n'importe quel lecteur PDF. Chaque page mesure le double en largeur (slide + notes cote a cote). Tu projettes seulement **la moitie gauche** de l'ecran sur le projecteur (en dragguant la fenetre PDF a cheval entre tes deux ecrans).
+
+## Liens cliquables et bookmarks
+
+Le PDF a ete genere avec `hyperref` :
+
+- `pdfpagemode=FullScreen` : ouvre directement plein ecran.
+- `pdfstartview=Fit` : adapte au mieux la fenetre.
+- `bookmarksopen=true` : Acrobat affiche par defaut le sommaire dans le panneau gauche (utile pour sauter a une slide).
+
+## Avant la presentation : checklist
+
+- [ ] `pdf/pitch.pdf` ouvre bien en plein ecran sur le projecteur de la salle.
+- [ ] La couleur passe (le bleu `bridgeblue` n'est pas delave par le video-projecteur).
+- [ ] Mes notes (`pitch-notes.pdf` ou pdfpc) sont sur **mon** ecran, pas sur le projecteur.
+- [ ] Le **demo Docker** est lance et fonctionne (smoke test passe).
+- [ ] Le **chrome** ouvert sur `http://localhost:8080/` (dashboard) et `http://localhost:8081/fhir/Observation?_count=20` (HAPI).
+- [ ] Le **terminal** pret avec `bash demo/scripts/e2e_test.sh` au cas ou je veux le relancer pendant la demo.
+
+## Pendant la presentation
+
+- **Slide F13 "Place a la demo"** = je passe Alt+Tab vers le navigateur Docker.
+- **Slide F14 "L'histoire que je vous ai racontee"** = retour au PDF pour conclure.
+- Garde **5 min** de marge sur la demo : prefere couper la demo plus tot que de manquer la conclusion.

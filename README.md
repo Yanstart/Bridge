@@ -40,8 +40,11 @@ Projet de fin d'année **TS6 Technologies de la Santé** — EPHEC Brussels — 
 |---|---|---|
 | Cahier des charges | 66 | [`pdf/cdc.pdf`](pdf/cdc.pdf) |
 | Rapport académique | 14 | [`pdf/rapport.pdf`](pdf/rapport.pdf) |
-| Pitch Beamer | 15 | [`pdf/pitch.pdf`](pdf/pitch.pdf) |
+| Pitch Beamer (projection) | 18 | [`pdf/pitch.pdf`](pdf/pitch.pdf) |
+| Pitch Beamer (dual-écran avec notes) | 18 | [`pdf/pitch-notes.pdf`](pdf/pitch-notes.pdf) |
 | Démonstration dockerisée | — | [`demo/`](demo/) |
+
+> Mode présentation, raccourcis clavier, dual-écran : voir [`docs/PRESENTATION.md`](docs/PRESENTATION.md).
 
 ## Lancer la démo en 3 commandes
 
@@ -110,7 +113,8 @@ Prérequis : MiKTeX ou TeX Live, avec `latexmk` et `biber`.
 ```bash
 make all              # compile rapport + pitch + cdc
 make rapport          # uniquement le rapport
-make pitch
+make pitch            # PDF projection (slides seules, full screen auto)
+make pitch-notes      # PDF dual-écran (slides + notes orateur à droite)
 make cdc
 make clean            # supprime les auxiliaires LaTeX
 ```

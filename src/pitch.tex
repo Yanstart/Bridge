@@ -3,7 +3,15 @@
 % Projet TS6 - Noel Junior Yando Fotso - EPHEC 2025-2026
 % Compilation : latexmk -xelatex -shell-escape pitch.tex
 % =====================================================================
-\documentclass[10pt,aspectratio=169]{beamer}
+% --- Toggle mode notes (presentation dual-ecran) --------------------
+% Par defaut : 0 = PDF de projection, slides seules.
+% Pour generer le PDF avec notes (pour pdfpc / Skim / Acrobat dual-ecran) :
+%   make pitch-notes
+% qui passe -pretex='\def\PRESENTERNOTES{1}' a latexmk.
+% \def car \providecommand n'existe pas encore avant \documentclass.
+\ifx\PRESENTERNOTES\undefined\def\PRESENTERNOTES{0}\fi
+
+\documentclass[10pt,aspectratio=169,xcolor={table}]{beamer}
 
 % --- Theme -----------------------------------------------------------
 % Theme Metropolis si disponible, sinon fallback "default" (commente).
@@ -69,6 +77,30 @@
 \usepackage{tabularx}
 \usepackage{listings}
 \usepackage{enumitem}
+\usepackage{colortbl}
+\usepackage{array}
+
+% --- Icones FontAwesome 5 (avec fallback silencieux si absent) -------
+\IfFileExists{fontawesome5.sty}{%
+  \usepackage{fontawesome5}%
+}{%
+  % Fallback : on definit des macros vides pour ne pas casser la compilation.
+  \newcommand{\faHospital}{}\newcommand{\faHeartbeat}{}\newcommand{\faTint}{}%
+  \newcommand{\faLungs}{}\newcommand{\faVial}{}\newcommand{\faCogs}{}%
+  \newcommand{\faUserShield}{}\newcommand{\faLock}{}\newcommand{\faServer}{}%
+  \newcommand{\faDatabase}{}\newcommand{\faNetworkWired}{}\newcommand{\faPlug}{}%
+  \newcommand{\faExclamationTriangle}{}\newcommand{\faCheckCircle}{}%
+  \newcommand{\faClock}{}\newcommand{\faWifi}{}\newcommand{\faStethoscope}{}%
+  \newcommand{\faRoute}{}\newcommand{\faProjectDiagram}{}\newcommand{\faPython}{}%
+  \newcommand{\faDocker}{}\newcommand{\faFile}{}\newcommand{\faRandom}{}%
+  \newcommand{\faChartLine}{}\newcommand{\faBalanceScale}{}%
+  \newcommand{\faQuestionCircle}{}\newcommand{\faUserMd}{}\newcommand{\faGavel}{}%
+  \newcommand{\faKey}{}\newcommand{\faRedo}{}\newcommand{\faClipboardCheck}{}%
+}
+
+% --- Macro zebra : alternance des lignes (booktabs friendly) ---------
+% \zebra avant un tableau : grise les lignes paires depuis la 2e ligne.
+\newcommand{\zebra}{\rowcolors{2}{bridgesoft}{white}}
 
 % --- Styles listings -------------------------------------------------
 \lstdefinestyle{bridgebase}{%
@@ -146,6 +178,25 @@
 
 \setbeamertemplate{navigation symbols}{}
 
+% --- Mode notes a droite (pour pdfpc/Skim/Acrobat dual-ecran) -------
+\ifnum\PRESENTERNOTES=1
+  \usepackage{pgfpages}
+  \setbeameroption{show notes on second screen=right}
+\fi
+
+% --- Hyperref : ouvrir en plein ecran + bookmarks --------------------
+% beamer charge deja hyperref, on customise juste les options.
+\hypersetup{%
+  pdftitle={IoT Edge Bridge - Pitch TS6 EPHEC},
+  pdfauthor={Noel Junior Yando Fotso},
+  pdfsubject={Passerelle d'interoperabilite Edge pour le BIHR},
+  pdfkeywords={FHIR, HL7, IoT, BIHR, Edge, Interoperabilite},
+  pdfpagemode=FullScreen,
+  pdfstartview=Fit,
+  bookmarks=true,
+  bookmarksopen=true
+}
+
 % --- Metadonnees -----------------------------------------------------
 \title{IoT Edge Bridge}
 \subtitle{Du chaos des dispositifs au continuum BIHR}
@@ -172,17 +223,16 @@
 \partref{Partie 1/5 : Le contexte}
 \chref{Ch.1}
 \begin{frame}{Le contexte}
-\begin{itemize}[leftmargin=*]
-  \item L'h\^opital belge produit chaque jour des milliers de mesures vitales.
-  \item Ces mesures viennent de moniteurs, pompes, glucom\`etres, ventilateurs, parfois m\^eme de logiciels Legacy d\'eploy\'es il y a 15 ans.
-  \item Le \alert{Plan eSant\'e 2025-2027} les veut toutes dans le BIHR, pour le clinicien, pour le patient, pour la recherche.
-  \item Pourtant, presque aucune ne s'y rend automatiquement. Le verrou n'est pas la volont\'e, c'est l'\alert{interop\'erabilit\'e}.
-  \item Et toucher au mat\'eriel certifi\'e casse son marquage CE.
+\begin{itemize}[leftmargin=*, itemsep=0.4em]
+  \item \textcolor{bridgealert}{\faHeartbeat}~\textbf{Des milliers} de mesures vitales par jour : moniteurs, pompes, glucom\`etres, ventilateurs.
+  \item \textcolor{bridgeblue}{\faHospital}~\textbf{Plan eSant\'e 2025-2027} : toutes ces mesures attendues dans le BIHR.
+  \item \textcolor{bridgealert}{\faExclamationTriangle}~\textbf{Verrou} : l'interop\'erabilit\'e, pas la volont\'e.
+  \item \textcolor{bridgealert}{\faGavel}~\textbf{Contrainte} : toucher au mat\'eriel certifi\'e casse le marquage CE.
 \end{itemize}
 
 \vspace{1em}
-\begin{bridgekey}[Le mandat]
-Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'histoire qu'on va vivre dans les 10 prochaines minutes.
+\begin{bridgekey}[\faKey~Le mandat]
+Faire arriver les mesures au BIHR \textbf{sans toucher aux dispositifs}.
 \end{bridgekey}
 \note{Slide 2. On commence par poser le contexte humain et professionnel. Ce n'est pas un probleme theorique : ces mesures existent, elles ne se rendent pas au DPI, et c'est mauvais pour le patient.}
 \end{frame}
@@ -221,16 +271,17 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \begin{frame}{Les standards qui font le pont}
   \begin{center}
     \scriptsize
-    \begin{tabularx}{\linewidth}{l l X}
+    \zebra
+    \begin{tabularx}{\linewidth}{@{}c l l X@{}}
       \toprule
-      \textbf{Standard} & \textbf{Position} & \textbf{Ce que c'est, en une phrase} \\
+      & \textbf{Standard} & \textbf{Position} & \textbf{En une phrase} \\
       \midrule
-      HL7 v2   & Entr\'ee Legacy & Format texte \`a barres verticales utilis\'e par 80~\% du parc hospitalier mondial. \\
-      FHIR R4  & Sortie moderne  & Norme HL7 r\'ecente fond\'ee sur des ressources REST/JSON, lisibles par les DPI 2020+. \\
-      LOINC    & Codification    & Dictionnaire universel de codes pour les analyses, mesures et observations cliniques. \\
-      IHE PCD  & Cadre intero.   & Domaine d'IHE qui d\'efinit les profils de connexion des dispositifs m\'edicaux au DPI. \\
-      KMEHR    & Belgique        & Format XML belge, utilis\'e pour les \'echanges hubs r\'egionaux et MetaHub. \\
-      DICOM    & Imagerie        & Standard mondial de l'imagerie m\'edicale, hors scope de la d\'emo (radio, IRM, scan). \\
+      \textcolor{bridgealert}{\faFile}      & HL7 v2   & Entr\'ee Legacy & Format texte \`a barres verticales utilis\'e par 80~\% du parc hospitalier mondial. \\
+      \textcolor{bridgeteal}{\faRoute}         & FHIR R4  & Sortie moderne  & Norme HL7 r\'ecente, ressources REST/JSON, lisible par les DPI 2020+. \\
+      \textcolor{bridgeblue}{\faProjectDiagram}& LOINC    & Codification    & Dictionnaire universel de codes pour mesures et observations cliniques. \\
+      \textcolor{bridgegreen}{\faNetworkWired} & IHE PCD  & Cadre intero.   & Profils IHE de connexion des dispositifs m\'edicaux au DPI. \\
+      \textcolor{bridgeblue}{\faHospital}      & KMEHR    & Belgique        & Format XML belge des \'echanges hubs r\'egionaux et MetaHub. \\
+      \textcolor{bridgegray}{\faCogs}          & DICOM    & Imagerie        & Standard mondial de l'imagerie m\'edicale (hors scope d\'emo). \\
       \bottomrule
     \end{tabularx}
   \end{center}
@@ -270,19 +321,23 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{Ch.4}
 \begin{frame}{Stack technologique}
   \begin{center}
-    \begin{tabular}{ll}
+    \footnotesize
+    \zebra
+    \begin{tabular}{@{}c l l@{}}
       \toprule
-      \textbf{Couche} & \textbf{Technologie} \\
+      & \textbf{Couche} & \textbf{Technologie} \\
       \midrule
-      C\oe ur middleware     & Python 3.12 + FastAPI \\
-      Persistence locale     & SQLite WAL chiffr\'e \\
-      Dashboard              & HTMX + WebSocket \\
-      Transport s\'ecuris\'e & httpx + Tenacity (retry exponentiel) \\
-      Orchestration          & Docker Compose \\
-      Cible FHIR             & HAPI FHIR Server (image officielle) \\
+      \textcolor{bridgeblue}{\faPython}        & C\oe ur middleware     & Python 3.12 + FastAPI \\
+      \textcolor{bridgeblue}{\faDatabase}      & Persistance locale     & SQLite WAL chiffr\'e \\
+      \textcolor{bridgeteal}{\faRandom}        & Dashboard              & HTMX + WebSocket \\
+      \textcolor{bridgeteal}{\faRedo}          & Transport s\'ecuris\'e & httpx + Tenacity (retry exponentiel) \\
+      \textcolor{bridgeblue}{\faDocker}        & Orchestration          & Docker Compose \\
+      \textcolor{bridgegreen}{\faServer}       & Cible FHIR             & HAPI FHIR Server (image officielle) \\
       \bottomrule
     \end{tabular}
   \end{center}
+  \vspace{0.4em}
+  \centerline{\itshape\scriptsize Que des briques \'eprouv\'ees. Choix volontairement conservateur.}
   \note{Python pour la productivite, FastAPI pour la performance asyncio, SQLite WAL pour la resilience, HTMX pour un dashboard sans framework lourd. Que des briques eprouvees, rien d'exotique. Choix volontairement conservateur.}
 \end{frame}
 
@@ -307,17 +362,18 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \begin{frame}{Quatre \'equipements, quatre canaux}
   \begin{center}
     \scriptsize
-    \begin{tabular}{llll}
+    \zebra
+    \begin{tabular}{@{}c l l l l@{}}
       \toprule
-      \textbf{\'Equipement} & \textbf{Famille} & \textbf{Canal} & \textbf{Codes LOINC} \\
+      & \textbf{\'Equipement} & \textbf{Famille} & \textbf{Canal} & \textbf{LOINC} \\
       \midrule
-      Philips IntelliVue MX450 & Moniteur multiparam\'etrique & TCP MLLP HL7v2     & SpO2, FC, PA \\
-      Masimo Radical-7         & Oxym\`etre POC               & BLE simul\'e MQTT  & SpO2, FC \\
-      Welch Allyn CP150        & ECG 12 d\'erivations         & Fichier d\'epos\'e & \'Etude ECG, intervalles \\
-      Dr\"ager Evita V500      & Ventilateur                  & RS-232 MEDIBUS     & FiO2, PEEP, VT, FR \\
+      \textcolor{bridgealert}{\faHeartbeat}    & Philips IntelliVue MX450 & Moniteur multiparam.   & TCP MLLP HL7v2  & SpO2, FC, PA \\
+      \textcolor{bridgealert}{\faTint}         & Masimo Radical-7         & Oxym\`etre POC          & BLE \(\to\) MQTT JSON & SpO2, FC \\
+      \textcolor{bridgealert}{\faChartLine}    & Welch Allyn CP150        & ECG 12 d\'erivations    & Fichier d\'epos\'e & \'Etude ECG \\
+      \textcolor{bridgealert}{\faLungs}        & Dr\"ager Evita V500      & Ventilateur            & RS-232 MEDIBUS  & FiO2, PEEP, VT, FR \\
       \bottomrule
     \end{tabular}\\[2mm]
-    {\itshape\small 4 protocoles diff\'erents, 1 seul c\oe ur de traitement, des profils JSON pour chaque.}
+    {\itshape\small 4 protocoles, 1 seul c\oe ur, 1 profil JSON par dispositif.}
   \end{center}
   \note{Quatre dispositifs, quatre mondes techniques differents. TCP, BLE, fichier, port serie. Le coeur du bridge ne change pas. Seul le profil JSON change. C'est la promesse de la solution.}
 \end{frame}
@@ -330,14 +386,15 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \begin{frame}{S\'ecurit\'e et confidentialit\'e par construction}
   \begin{center}
     \scriptsize
-    \begin{tabularx}{\linewidth}{l l X}
+    \zebra
+    \begin{tabularx}{\linewidth}{@{}c l l X@{}}
       \toprule
-      \textbf{Pilier} & \textbf{Mise en \oe uvre} & \textbf{Pourquoi c'est l\`a} \\
+      & \textbf{Pilier} & \textbf{Mise en \oe uvre} & \textbf{Pourquoi c'est l\`a} \\
       \midrule
-      Confidentialit\'e & TLS 1.3, minimisation, dashboard sans PII & La donn\'ee patient ne circule jamais en clair, et l'op\'erateur biom\'edical n'a jamais besoin de la voir pour faire son m\'etier. \\
-      Int\'egrit\'e     & SHA-256 sur file de repli, validation FHIR & On d\'etecte une corruption de fichier ou un mapping fautif \emph{avant} d'envoyer une mesure erron\'ee au DPI. \\
-      Disponibilit\'e   & Retry exponentiel, fallback SQLite, hot-reload & Une coupure r\'eseau de 30 minutes ne perd aucune mesure ; un nouveau profil ne demande pas de red\'emarrage. \\
-      Tra\c{c}abilit\'e & Logs JSON horodat\'es UTC, sans valeur clinique & On peut tout auditer (qui, quand, quoi) sans jamais cr\'eer un nouveau d\'ep\^ot de donn\'ees patient. \\
+      \textcolor{bridgeblue}{\faLock}                & Confidentialit\'e & TLS 1.3, minimisation, dashboard sans PII & La donn\'ee patient ne circule jamais en clair ; l'op\'erateur n'a pas besoin de la voir pour faire son m\'etier. \\
+      \textcolor{bridgeteal}{\faUserShield}           & Int\'egrit\'e     & SHA-256 sur file de repli, validation FHIR & On d\'etecte corruption ou mapping fautif \emph{avant} d'envoyer une mesure erron\'ee au DPI. \\
+      \textcolor{bridgegreen}{\faRedo}               & Disponibilit\'e   & Retry exponentiel, fallback SQLite, hot-reload & Coupure r\'eseau 30 min : aucune perte. Nouveau profil : aucun red\'emarrage. \\
+      \textcolor{bridgeblue}{\faClipboardCheck}      & Tra\c{c}abilit\'e & Logs JSON UTC, sans valeur clinique & Audit complet (qui/quand/quoi) sans cr\'eer un nouveau d\'ep\^ot de donn\'ees patient. \\
       \bottomrule
     \end{tabularx}
   \end{center}
@@ -351,23 +408,25 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{Ch.7}
 \begin{frame}{Trois questions \'ethiques, trois r\'eponses}
   \scriptsize
-  \begin{tabularx}{\linewidth}{p{4.4cm} X}
+  \zebra
+  \begin{tabularx}{\linewidth}{@{}c p{4.0cm} X@{}}
     \toprule
-    \textbf{La question} & \textbf{Notre r\'eponse} \\
+    & \textbf{Question} & \textbf{R\'eponse} \\
     \midrule
+    \textcolor{bridgealert}{\faQuestionCircle} &
     \textbf{Responsabilit\'e du mapping.} Qui r\'epond si l'unit\'e est mal cod\'ee~? &
-    Le profil JSON est sign\'e et tra\c{c}\'e (auteur, version, date). Toute mesure publi\'ee porte la r\'ef\'erence du profil utilis\'e. La responsabilit\'e est nominative, pas diluee dans l'outil. \\
-    \addlinespace
-    \textbf{Consentement au partage hub.} Distinct du consentement RGPD g\'en\'eral. &
-    Le bridge \emph{produit} la donn\'ee, mais ne la \emph{partage pas} de lui-m\^eme. Le consentement BIHR/MetaHub reste g\'er\'e en amont par le DPI, qui filtre ce qu'il \'emet vers les hubs. \\
-    \addlinespace
-    \textbf{Risque de datafication.} Capter facilement n'invite pas \`a capter sans limite. &
-    Activer un dispositif est une d\'ecision explicite (profil JSON activ\'e), valid\'ee dans un comit\'e clinique. Aucun d\'eploiement automatique de tous les profils disponibles. \\
+    Profil JSON sign\'e (auteur, version, date). Chaque mesure porte sa r\'ef\'erence. Responsabilit\'e \textbf{nominative}, pas diluee. \\
+    \textcolor{bridgealert}{\faQuestionCircle} &
+    \textbf{Consentement au partage hub.} Distinct du RGPD g\'en\'eral. &
+    Le bridge \emph{produit}, ne \emph{partage pas}. Le consentement BIHR/MetaHub reste g\'er\'e \textbf{par le DPI}. \\
+    \textcolor{bridgealert}{\faQuestionCircle} &
+    \textbf{Risque de datafication.} Capter facile $\neq$ capter sans limite. &
+    Activer un dispositif = d\'ecision explicite, valid\'ee en \textbf{comit\'e clinique}. Pas de d\'eploiement automatique. \\
     \bottomrule
   \end{tabularx}
   \vspace{2mm}
-  \begin{bridgewarn}[AIPD obligatoire en prod]
-    Avant tout d\'eploiement r\'eel, une analyse d'impact RGPD formelle, avec consultation du DPO de l'\'etablissement, est obligatoire (RGPD art.~35).
+  \begin{bridgewarn}[\faExclamationTriangle~AIPD obligatoire en prod]
+    Avant tout d\'eploiement r\'eel : analyse d'impact RGPD formelle, avec consultation du DPO (RGPD art.~35).
   \end{bridgewarn}
   \note{Trois questions qu'on ne peut pas eluder, et trois reponses concretes : signature des profils pour la responsabilite, separation bridge/DPI pour le consentement, comite clinique pour le risque de datafication. La technique ne dispense pas de la reflexion, mais elle peut l'outiller.}
 \end{frame}
@@ -393,16 +452,16 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{}
 \begin{frame}{L'histoire que je vous ai racont\'ee}
 
-\begin{itemize}[leftmargin=*]
-  \item Au d\'ebut, il y avait des dispositifs qui ne se parlaient pas, et des donn\'ees qui n'arrivaient pas au DPI.
-  \item Nous avons pos\'e un middleware au milieu, configurable, transparent, attentif aux r\`egles MDR et RGPD.
-  \item Quatre couches Adapter, Parser, Mapper, Transport, le m\^eme c\oe ur pour quatre canaux diff\'erents.
-  \item Une supervision OT pour les techniciens biom\'edicaux, sans jamais exposer une donn\'ee patient.
-  \item Une ouverture aux plugins, pour qu'aucun \'editeur seul ne soit le goulet du futur.
+\begin{itemize}[leftmargin=*, itemsep=0.4em]
+  \item \textcolor{bridgealert}{\faExclamationTriangle}~\textbf{Au d\'ebut} : dispositifs muets, donn\'ees captives.
+  \item \textcolor{bridgeblue}{\faProjectDiagram}~\textbf{Nous avons pos\'e} un middleware configurable, transparent, MDR/RGPD-aware.
+  \item \textcolor{bridgeteal}{\faRoute}~\textbf{Quatre couches} : Adapter, Parser, Mapper, Transport. Un seul c\oe ur.
+  \item \textcolor{bridgeblue}{\faUserMd}~\textbf{Une supervision OT} biom\'edicale, sans jamais exposer la donn\'ee patient.
+  \item \textcolor{bridgegreen}{\faNetworkWired}~\textbf{Une ouverture aux plugins}, pour qu'aucun \'editeur seul ne soit le goulet.
 \end{itemize}
 
 \vspace{0.6em}
-\centerline{\itshape\large Le chaos est devenu de l'ordre. Sans toucher au mat\'eriel.}
+\centerline{\itshape\large\color{bridgeblue} Le chaos est devenu de l'ordre. Sans toucher au mat\'eriel.}
 \note{Slide 14. C'est le moment de clore le recit. Premiere conclusion : narrative. On rappelle l'arc complet.}
 \end{frame}
 
@@ -413,12 +472,12 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \chref{}
 \begin{frame}{L'histoire en une slide}
 
-\begin{itemize}[label={}, leftmargin=*]
-  \item \textbf{1. Le contexte.} Mesures captives, BIHR attendu, MDR verrou.
-  \item \textbf{2. Le syst\`eme.} 4 sources, 1 c\oe ur, FHIR R4 en sortie.
-  \item \textbf{3. L'architecture.} Adapter, Parser, Mapper, Transport, Docker, Python.
-  \item \textbf{4. Les capteurs.} 4 protocoles, 4 \'equipements, 8 codes LOINC.
-  \item \textbf{5. L'\'ethique.} CIA + minimisation + AIPD obligatoire en prod.
+\begin{itemize}[label={}, leftmargin=*, itemsep=0.5em]
+  \item \textcolor{bridgealert}{\faHospital}~\textbf{1.~Le contexte.} Mesures captives, BIHR attendu, MDR verrou.
+  \item \textcolor{bridgeteal}{\faProjectDiagram}~\textbf{2.~Le syst\`eme.} 4 sources, 1 c\oe ur, FHIR R4 en sortie.
+  \item \textcolor{bridgeblue}{\faPython}~\textbf{3.~L'architecture.} Adapter, Parser, Mapper, Transport (Docker, Python).
+  \item \textcolor{bridgealert}{\faHeartbeat}~\textbf{4.~Les capteurs.} 4 protocoles, 4 \'equipements, 8 codes LOINC.
+  \item \textcolor{bridgeblue}{\faUserShield}~\textbf{5.~L'\'ethique.} CIA + minimisation + AIPD obligatoire en prod.
 \end{itemize}
 
 \note{Slide 15. Seconde conclusion : synthese pedagogique, pour ancrer dans la memoire les 5 piliers du pitch.}
@@ -432,28 +491,29 @@ Faire arriver les mesures dans le BIHR sans toucher aux dispositifs. Voil\`a l'h
 \begin{frame}{Et apr\`es ? L\`a o\`u nous en sommes}
 
 \scriptsize
-\begin{tabularx}{\linewidth}{p{3.6cm} X}
+\zebra
+\begin{tabularx}{\linewidth}{@{}c p{3.4cm} X@{}}
 \toprule
-\textbf{Statut} & \textbf{Justification} \\
+& \textbf{Statut} & \textbf{Pourquoi} \\
 \midrule
-\textbf{Non-DM} (middleware d'int\'egration IT) &
-Le bridge ne mesure pas, ne diagnostique pas, ne pilote aucun acte clinique. Il \emph{transporte} et \emph{traduit} des donn\'ees d\'ej\`a produites par des dispositifs marqu\'es CE. MDR 2017/745 art.~2 ne le qualifie donc pas de DM. \\
-\addlinespace
-\textbf{Niveau M2} mhealth.belgium &
-M1 = simple application info. M2 = outil utilisable dans un parcours de soin coordonn\'e. M3 = remboursable INAMI. M2 est l'objectif r\'ealiste : usage hospitalier dans un cadre d\'efini, sans pr\'etention de remboursement. \\
+\textcolor{bridgeblue}{\faBalanceScale} & \textbf{Non-DM} (middleware IT) &
+Le bridge \textbf{transporte} et \textbf{traduit}, il ne mesure ni ne diagnostique. MDR 2017/745 art.~2 ne le qualifie donc pas de DM. \\
+\textcolor{bridgegreen}{\faCheckCircle} & \textbf{Niveau M2} mhealth.belgium &
+M1 info, \textbf{M2 parcours coordonn\'e}, M3 rembours\'e. M2 = palier r\'ealiste pour un middleware non rembours\'e INAMI. \\
 \bottomrule
 \end{tabularx}
 
 \vspace{0.4em}
 \scriptsize
-\begin{tabularx}{\linewidth}{X r}
+\zebra
+\begin{tabularx}{\linewidth}{@{}c X r@{}}
 \toprule
-\textbf{Indicateur} & \textbf{Cible} \\
+& \textbf{Indicateur} & \textbf{Cible} \\
 \midrule
-Latence p95 ingestion (capteur $\rightarrow$ HAPI) & $< 500$ ms \\
-Taux de transmission r\'eussie & $> 99~\%$ \\
-Minutes par soignant et par jour \'economis\'ees & $> 30$ \\
-Lignes de code modifi\'ees pour ajouter un dispositif & 0 \\
+\textcolor{bridgeteal}{\faClock}      & Latence p95 ingestion (capteur $\to$ HAPI) & $< 500$ ms \\
+\textcolor{bridgegreen}{\faCheckCircle} & Taux de transmission r\'eussie & $> 99~\%$ \\
+\textcolor{bridgeblue}{\faUserMd}     & Min/soignant/jour \'economis\'ees & $> 30$ \\
+\textcolor{bridgeblue}{\faPython}     & LdC pour ajouter un dispositif & 0 \\
 \bottomrule
 \end{tabularx}
 
@@ -467,15 +527,15 @@ Lignes de code modifi\'ees pour ajouter un dispositif & 0 \\
 \chref{Roadmap}
 \begin{frame}{Et apr\`es ? Trois \'evolutions \`a venir}
 
-\begin{itemize}[leftmargin=*]
-  \item \textbf{F1.} Plugins de traduction communautaires (mod\`ele HACS, npm).
-  \item \textbf{F2.} D\'etection d'anomalies en bord (IA l\'eg\`ere ONNX).
-  \item \textbf{F3.} F\'ed\'eration europ\'eenne EHDS (mobilit\'e transfrontali\`ere).
+\begin{itemize}[leftmargin=*, itemsep=0.5em]
+  \item \textcolor{bridgegreen}{\faPlug}~\textbf{F1.} Plugins communautaires (mod\`ele HACS, npm).
+  \item \textcolor{bridgeteal}{\faChartLine}~\textbf{F2.} D\'etection d'anomalies en bord (IA l\'eg\`ere ONNX).
+  \item \textcolor{bridgeblue}{\faNetworkWired}~\textbf{F3.} F\'ed\'eration europ\'eenne EHDS (mobilit\'e transfrontali\`ere).
 \end{itemize}
 
 \vspace{0.6em}
-\begin{bridgeinfo}[Effet de catalogue]
-Aucun \'editeur seul ne couvre tous les dispositifs m\'edicaux du monde. La communaut\'e \'ecrit ses plugins. Le bridge devient un standard de fait.
+\begin{bridgeinfo}[\faNetworkWired~Effet de catalogue]
+Aucun \'editeur seul ne couvre tout le parc mondial. La communaut\'e \'ecrit ses plugins. Le bridge devient un \textbf{standard de fait}.
 \end{bridgeinfo}
 \note{Slide 17. Deuxieme prolongement : ce qu'on imagine pour la suite, et la dynamique communautaire qui rend cette suite plausible.}
 \end{frame}
