@@ -102,6 +102,16 @@
 % \zebra avant un tableau : grise les lignes paires depuis la 2e ligne.
 \newcommand{\zebra}{\rowcolors{2}{bridgesoft}{white}}
 
+% --- Macro \offlogo : inclut un logo officiel a hauteur uniforme -----
+% Boite max 18mm x 5mm, aspect ratio preserve. Les logos vivent dans
+% figures/logos/. Sources : Wikipedia Commons, sites officiels.
+% Nom \offlogo et non \logo car \logo est deja reserve par Beamer.
+\newcommand{\offlogo}[1]{%
+  \raisebox{-0.4ex}{%
+    \includegraphics[width=18mm,height=5mm,keepaspectratio]{figures/logos/#1}%
+  }%
+}
+
 % --- Styles listings -------------------------------------------------
 \lstdefinestyle{bridgebase}{%
   basicstyle=\ttfamily\scriptsize,
@@ -290,10 +300,10 @@ Faire arriver les mesures au BIHR \textbf{sans toucher aux dispositifs}.
       \toprule
       & \textbf{Standard} & \textbf{Position} & \textbf{En une phrase} \\
       \midrule
-      \textcolor{bridgealert}{\faFile}      & HL7 v2   & Entr\'ee Legacy & Format texte \`a barres verticales utilis\'e par 80~\% du parc hospitalier mondial. \\
-      \textcolor{bridgeteal}{\faRoute}         & FHIR R4  & Sortie moderne  & Norme HL7 r\'ecente, ressources REST/JSON, lisible par les DPI 2020+. \\
-      \textcolor{bridgeblue}{\faProjectDiagram}& LOINC    & Codification    & Dictionnaire universel de codes pour mesures et observations cliniques. \\
-      \textcolor{bridgegreen}{\faNetworkWired} & IHE PCD  & Cadre intero.   & Profils IHE de connexion des dispositifs m\'edicaux au DPI. \\
+      \offlogo{hl7.png}                           & HL7 v2   & Entr\'ee Legacy & Format texte \`a barres verticales utilis\'e par 80~\% du parc hospitalier mondial. \\
+      \offlogo{fhir.png}                          & FHIR R4  & Sortie moderne  & Norme HL7 r\'ecente, ressources REST/JSON, lisible par les DPI 2020+. \\
+      \offlogo{loinc.png}                         & LOINC    & Codification    & Dictionnaire universel de codes pour mesures et observations cliniques. \\
+      \offlogo{ihe.png}                           & IHE PCD  & Cadre intero.   & Profils IHE de connexion des dispositifs m\'edicaux au DPI. \\
       \textcolor{bridgeblue}{\faHospital}      & KMEHR    & Belgique        & Format XML belge des \'echanges hubs r\'egionaux et MetaHub. \\
       \textcolor{bridgegray}{\faCogs}          & DICOM    & Imagerie        & Standard mondial de l'imagerie m\'edicale (hors scope d\'emo). \\
       \bottomrule
@@ -341,12 +351,12 @@ Faire arriver les mesures au BIHR \textbf{sans toucher aux dispositifs}.
       \toprule
       & \textbf{Couche} & \textbf{Technologie} \\
       \midrule
-      \textcolor{bridgeblue}{\faPython}        & C\oe ur middleware     & Python 3.12 + FastAPI \\
-      \textcolor{bridgeblue}{\faDatabase}      & Persistance locale     & SQLite WAL chiffr\'e \\
-      \textcolor{bridgeteal}{\faRandom}        & Dashboard              & HTMX + WebSocket \\
-      \textcolor{bridgeteal}{\faRedo}          & Transport s\'ecuris\'e & httpx + Tenacity (retry exponentiel) \\
-      \textcolor{bridgeblue}{\faDocker}        & Orchestration          & Docker Compose \\
-      \textcolor{bridgegreen}{\faServer}       & Cible FHIR             & HAPI FHIR Server (image officielle) \\
+      \offlogo{python.png}                  & C\oe ur middleware     & Python 3.12 + FastAPI~\offlogo{fastapi.png} \\
+      \offlogo{sqlite.png}                  & Persistance locale     & SQLite WAL chiffr\'e \\
+      \offlogo{htmx.png}                    & Dashboard              & HTMX + WebSocket \\
+      \textcolor{bridgeteal}{\faRedo}    & Transport s\'ecuris\'e & httpx + Tenacity (retry exponentiel) \\
+      \offlogo{docker.png}                  & Orchestration          & Docker Compose \\
+      \offlogo{hapi.png}                    & Cible FHIR             & HAPI FHIR Server (image officielle) \\
       \bottomrule
     \end{tabular}
   \end{center}
@@ -381,10 +391,10 @@ Faire arriver les mesures au BIHR \textbf{sans toucher aux dispositifs}.
       \toprule
       & \textbf{\'Equipement} & \textbf{Famille} & \textbf{Canal} & \textbf{LOINC} \\
       \midrule
-      \textcolor{bridgealert}{\faHeartbeat}    & Philips IntelliVue MX450 & Moniteur multiparam.   & TCP MLLP HL7v2  & SpO2, FC, PA \\
-      \textcolor{bridgealert}{\faTint}         & Masimo Radical-7         & Oxym\`etre POC          & BLE \(\to\) MQTT JSON & SpO2, FC \\
-      \textcolor{bridgealert}{\faChartLine}    & Welch Allyn CP150        & ECG 12 d\'erivations    & Fichier d\'epos\'e & \'Etude ECG \\
-      \textcolor{bridgealert}{\faLungs}        & Dr\"ager Evita V500      & Ventilateur            & RS-232 MEDIBUS  & FiO2, PEEP, VT, FR \\
+      \offlogo{philips.png}     & Philips IntelliVue MX450 & Moniteur multiparam.    & TCP MLLP HL7v2        & SpO2, FC, PA \\
+      \offlogo{masimo.png}      & Masimo Radical-7         & Oxym\`etre POC           & BLE \(\to\) MQTT JSON & SpO2, FC \\
+      \offlogo{welchallyn.png}  & Welch Allyn CP150        & ECG 12 d\'erivations     & Fichier d\'epos\'e    & \'Etude ECG \\
+      \offlogo{draeger.png}     & Dr\"ager Evita V500      & Ventilateur             & RS-232 MEDIBUS        & FiO2, PEEP, VT, FR \\
       \bottomrule
     \end{tabular}\\[2mm]
     {\itshape\small 4 protocoles, 1 seul c\oe ur, 1 profil JSON par dispositif.}
@@ -451,9 +461,10 @@ Faire arriver les mesures au BIHR \textbf{sans toucher aux dispositifs}.
 \partref{}
 \chref{D\'emo}
 \begin{frame}[plain]{Place \`a la d\'emo}
-  \vspace{1.5cm}
+  \vspace{0.8cm}
   \begin{center}
-    {\Large\bfseries\color{bridgeblue} Maintenant, on lance.}\\[6mm]
+    \includegraphics[height=2.8cm,keepaspectratio]{figures/logos/docker.png}\\[6mm]
+    {\Large\bfseries\color{bridgeblue} Maintenant, on lance.}\\[4mm]
     {\itshape\large\ttfamily docker compose up}
   \end{center}
   \note{La theorie c'est bien. Maintenant on lance. Cinq minutes en live, sur Docker. Vous allez voir les quatre simulateurs publier en FHIR sur HAPI en temps reel. Vous allez voir le dashboard passer au vert.}

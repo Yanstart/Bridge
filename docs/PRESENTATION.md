@@ -92,6 +92,26 @@ Le PDF a ete genere avec `hyperref` :
 - `pdfstartview=Fit` : adapte au mieux la fenetre.
 - `bookmarksopen=true` : Acrobat affiche par defaut le sommaire dans le panneau gauche (utile pour sauter a une slide).
 
+## Sources des logos officiels
+
+Le pitch utilise les logos officiels des standards, de la stack et des fabricants
+de dispositifs. Tous proviennent de sources officielles :
+
+| Logo | Source | Licence |
+|---|---|---|
+| HL7, FHIR, LOINC, IHE, Python, Docker, FastAPI, SQLite, Philips, Masimo, Welch Allyn, Drager | Wikimedia Commons | Domaine public / fair use trademark |
+| FHIR (variant) | `hl7.org/fhir/assets/images/fhir-logo-www.png` | HL7 trademark, usage informatif |
+| LOINC | `loinc.org/wp-content/uploads/2016/07/loinc-logo-tmp.png` | Regenstrief trademark |
+| HAPI FHIR | `hapifhir.io/hapi-fhir/images/logos/small-logo.png` | HAPI project (Apache 2.0) |
+| HTMX | Wikimedia Commons | Bigsky Software trademark |
+
+Les fichiers sont stockes dans `src/figures/logos/`. Aucun logo n'est modifie ;
+ils sont inclus a leur taille native via la macro `\offlogo{nom.png}` qui les
+contraint dans une boite de 18 mm x 5 mm en preservant le ratio.
+
+L'usage de ces logos dans un travail academique illustrant les standards et
+technologies cites releve du fair use (illustration, pas d'endossement).
+
 ## Avant la presentation : checklist
 
 - [ ] `pdf/pitch.pdf` ouvre bien en plein ecran sur le projecteur de la salle.
